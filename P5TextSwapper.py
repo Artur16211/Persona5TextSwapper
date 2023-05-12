@@ -731,8 +731,8 @@ def run_program():
                 continue
 
     delete_files_not_in_list(output_folder, mod_files_list)
-    # delete_files_not_in_list(mod_folder, mod_files_list)
-    # delete_files_not_in_list(language_folder, language_files_list)
+    delete_files_not_in_list(mod_folder, mod_files_list)
+    delete_files_not_in_list(language_folder, language_files_list)
 
     print("Done!")
     enable_button()
