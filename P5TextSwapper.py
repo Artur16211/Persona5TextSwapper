@@ -707,46 +707,61 @@ def run_program():
     # print(mod_files_list)
 
     # Delete all files that are not in the mod_files_list, this leaves only the original mod files
-    # for root, dirs, files in os.walk(output_folder):
-    # get the full path of the files in the current directory
-    # file_paths = [os.path.join(root, file) for file in files]
-    # loop over the file paths
-    # for file_path in file_paths:
-    # get all the lines of the mod_files_list
-    # for line in mod_files_list:
-    # if the file path is not in the list of paths to keep, delete it
-    # mod_file_list_path = output_folder + line.strip()
-    # if file_path not in mod_file_list_path:
-    # print(f"Deleting {file_path}")
-    # os.remove(file_path)
+    for root, dirs, files in os.walk(output_folder):
+        # get the full path of the files in the current directory
+        file_paths = [os.path.join(root, file) for file in files]
+        # loop over the file paths
+        for file_path in file_paths:
+            # get all the lines of the mod_files_list
+            for line in mod_files_list:
+                # if the file path is not in the list of paths to keep, delete it
+                mod_file_list_path = output_folder + line.strip()
+                if file_path not in mod_file_list_path:
+                    print(f"Deleting {file_path}")
+                    try:
+                        os.remove(file_path)
+                        print(f"Deleted {file_path}")
+                    except FileNotFoundError:
+                        print(f"File {file_path} not found, skipping")
+                        continue
 
     # Delete all files that are not in the mod_files_list, this leaves only the original mod files
-    # for root, dirs, files in os.walk(mod_folder):
-    # get the full path of the files in the current directory
-    # file_paths = [os.path.join(root, file) for file in files]
-    # loop over the file paths
-    # for file_path in file_paths:
-    # get all the lines of the mod_files_list
-    # for line in mod_files_list:
-    # if the file path is not in the list of paths to keep, delete it
-    # mod_file_list_path = mod_folder + line.strip()
-    # if file_path not in mod_file_list_path:
-    # print(f"Deleting {file_path}")
-    # os.remove(file_path)
+    for root, dirs, files in os.walk(mod_folder):
+        # get the full path of the files in the current directory
+        file_paths = [os.path.join(root, file) for file in files]
+        # loop over the file paths
+        for file_path in file_paths:
+            # get all the lines of the mod_files_list
+            for line in mod_files_list:
+                # if the file path is not in the list of paths to keep, delete it
+                mod_file_list_path = mod_folder + line.strip()
+                if file_path not in mod_file_list_path:
+                    print(f"Deleting {file_path}")
+                    try:
+                        os.remove(file_path)
+                        print(f"Deleted {file_path}")
+                    except FileNotFoundError:
+                        print(f"File {file_path} not found, skipping")
+                        continue
 
     # Delete all files that are not in the language_files_list, this leaves only the original language files
-    # for root, dirs, files in os.walk(language_folder):
-    # get the full path of the files in the current directory
-    # file_paths = [os.path.join(root, file) for file in files]
-    # loop over the file paths
-    # for file_path in file_paths:
-    # get all the lines of the mod_files_list
-    # for line in language_files_list:
-    # if the file path is not in the list of paths to keep, delete it
-    # language_file_list_path = language_folder + line.strip()
-    # if file_path not in language_file_list_path:
-    # print(f"Deleting {file_path}")
-    # os.remove(file_path)
+    for root, dirs, files in os.walk(language_folder):
+        # get the full path of the files in the current directory
+        file_paths = [os.path.join(root, file) for file in files]
+        # loop over the file paths
+        for file_path in file_paths:
+            # get all the lines of the mod_files_list
+            for line in language_files_list:
+                # if the file path is not in the list of paths to keep, delete it
+                language_file_list_path = language_folder + line.strip()
+                if file_path not in language_file_list_path:
+                    print(f"Deleting {file_path}")
+                    try:
+                        os.remove(file_path)
+                        print(f"Deleted {file_path}")
+                    except FileNotFoundError:
+                        print(f"File {file_path} not found, skipping")
+                        continue
 
     print("Done!")
     enable_button()
