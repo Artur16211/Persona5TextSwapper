@@ -513,7 +513,6 @@ def run_program():
         # replace the key with the new key
             lang_msg_lines[new_key] = lang_msg_lines.pop(key)
 
-        # """
         # Get the common keys
         common_keys = set(mod_msg_lines.keys()) & set(lang_msg_lines.keys())
 
@@ -704,49 +703,36 @@ def run_program():
 
     # print(f"Deleting extra files from {output_folder}...")
 
-    # print(mod_files_list)
+    def delete_files_not_in_list(folder_path, files_list):
+        # Make a list with all the files in the folder including the ones in the subfolders
+        Del_files = []
+        for root, dirs, files in os.walk(folder_path):
+            for name in files:
+                Del_files.append(os.path.join(root, name))
+        Mod_List_Keep = []
+        for i in range(len(files_list)):
+            Mod_List_Keep.append(
+                folder_path + files_list[i])
+        # Delete all lines from Del_files that are in Mod_List_Keep
+        for i in range(len(Mod_List_Keep)):
+            for j in range(len(Del_files)):
+                if Mod_List_Keep[i].lower() == Del_files[j].lower():
+                    Del_files[j] = ""
+        # Delete all the empty lines
+        while "" in Del_files:
+            Del_files.remove("")
+        # Delete the files that are left in the keep_files list
+        for file in Del_files:
+            try:
+                print(f"Deleting {file}")
+                os.remove(file)
+            except FileNotFoundError:
+                print(f"Skipping {file} as it doesn't exist")
+                continue
 
-    # Delete all files that are not in the mod_files_list, this leaves only the original mod files
-    # for root, dirs, files in os.walk(output_folder):
-    # get the full path of the files in the current directory
-    # file_paths = [os.path.join(root, file) for file in files]
-    # loop over the file paths
-    # for file_path in file_paths:
-    # get all the lines of the mod_files_list
-    # for line in mod_files_list:
-    # if the file path is not in the list of paths to keep, delete it
-    # mod_file_list_path = output_folder + line.strip()
-    # if file_path not in mod_file_list_path:
-    # print(f"Deleting {file_path}")
-    # os.remove(file_path)
-
-    # Delete all files that are not in the mod_files_list, this leaves only the original mod files
-    # for root, dirs, files in os.walk(mod_folder):
-    # get the full path of the files in the current directory
-    # file_paths = [os.path.join(root, file) for file in files]
-    # loop over the file paths
-    # for file_path in file_paths:
-    # get all the lines of the mod_files_list
-    # for line in mod_files_list:
-    # if the file path is not in the list of paths to keep, delete it
-    # mod_file_list_path = mod_folder + line.strip()
-    # if file_path not in mod_file_list_path:
-    # print(f"Deleting {file_path}")
-    # os.remove(file_path)
-
-    # Delete all files that are not in the language_files_list, this leaves only the original language files
-    # for root, dirs, files in os.walk(language_folder):
-    # get the full path of the files in the current directory
-    # file_paths = [os.path.join(root, file) for file in files]
-    # loop over the file paths
-    # for file_path in file_paths:
-    # get all the lines of the mod_files_list
-    # for line in language_files_list:
-    # if the file path is not in the list of paths to keep, delete it
-    # language_file_list_path = language_folder + line.strip()
-    # if file_path not in language_file_list_path:
-    # print(f"Deleting {file_path}")
-    # os.remove(file_path)
+    delete_files_not_in_list(output_folder, mod_files_list)
+    delete_files_not_in_list(mod_folder, mod_files_list)
+    delete_files_not_in_list(language_folder, language_files_list)
 
     print("Done!")
     enable_button()
