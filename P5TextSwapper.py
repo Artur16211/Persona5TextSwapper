@@ -919,6 +919,6 @@ customtkinter.set_appearance_mode("dark")
 
 root.iconbitmap("dependencies/test2.ico")
 
-root.title("Persona 5 Royal Text Swapper")
+root.title("Persona 5 Text Swapper")
 
 root.mainloop()
