@@ -1,4 +1,4 @@
-# Persona5RTextSwapper
+# Persona5TextSwapper
 
 Python script for **swapping** text in Persona 5 (Royal) .msg files across different languages, without modifying parameters commonly edited by mods.<br><br>
 **Supported File Types:** .bmd, .bf<br><br>
