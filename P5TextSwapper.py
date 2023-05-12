@@ -734,6 +734,20 @@ def run_program():
     delete_files_not_in_list(mod_folder, mod_files_list)
     delete_files_not_in_list(language_folder, language_files_list)
 
+    def delete_empty_folders(path):
+        for root, dirs, files in os.walk(path, topdown=False):
+            for name in dirs:
+                full_path = os.path.join(root, name)
+                if not os.listdir(full_path):  # check if directory is empty
+                    os.rmdir(full_path)
+                else:
+                    # recursively delete all files and subfolders
+                    delete_empty_folders(full_path)
+
+    delete_empty_folders(output_folder)
+    delete_empty_folders(mod_folder)
+    delete_empty_folders(language_folder)
+
     print("Done!")
     enable_button()
     tk.messagebox.showinfo("Finished", "Replaced all the names in the mod!")
