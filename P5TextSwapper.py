@@ -224,13 +224,13 @@ def run_program():
     # Delete files from language_folder that don't end with .bf or .bmd
     for file in language_files_list_updated:
         full_path = language_folder + file
-        if not file.lower().endswith((".bf", ".bmd")):
+        if not file.lower().endswith((".bf", ".bmd", ".bin", ".pac", ".pak")):
             # print(f"El archivo {file} no es .bf o .bmd, se eliminará.")
             os.remove(full_path)
 
     for file in mod_files_list_updated:
         full_path = mod_folder + file
-        if not file.lower().endswith((".bf", ".bmd")):
+        if not file.lower().endswith((".bf", ".bmd", ".bin", ".pac", ".pak")):
             # print(f"El archivo {file} no es .bf o .bmd, se eliminará.")
             os.remove(full_path)
 
@@ -273,6 +273,7 @@ def run_program():
 
     # PersonaEditor functions
     def PEExport(input_file_path):
+        print(f"Exporting all from file: {input_file_path}")
         subprocess.run([personaeditor_path, input_file_path, '-expall'])
 
     def PEImport(input_file_path):
@@ -329,12 +330,52 @@ def run_program():
                 os.makedirs(os.path.dirname(
                     name_file_dirname_output), exist_ok=True)
         # copy the file to the output directory
-                shutil.copy(dat_file, name_file_dirname_output)
+                try:
+                    shutil.copy(dat_file, name_file_dirname_output)
+                except shutil.SameFileError:
+                    print(
+                        f"Skipping {dat_file} because it's the same file, if the file is from .pac/.pak/.bin, ignore this message")
+                    continue
 
-    def com_case_bmd(name_file):
-        ASCCompile(name_file)
-
-    # replace
+    def des_case_pakbinpac(path_file):
+        name_file = os.path.basename(path_file)
+        name_file_only = os.path.splitext(name_file)[0]
+        print(f"the name of the file is: {name_file}")
+        print(
+            f"the name of the file without the extension is: {name_file_only}")
+        # Make a folder with the name of the file
+        path_folder_only = os.path.dirname(path_file)
+        path_folder2 = path_folder_only + "/" + name_file_only
+        print(f"Creating folder: {path_folder2}")
+        os.makedirs(path_folder2, exist_ok=True)
+        new_path_file = path_folder2 + "/" + name_file
+        # Copy the file to the folder
+        print(f"Coping file: {path_file} to {new_path_file}")
+        shutil.copy(path_file, new_path_file)
+        PEExport(new_path_file)
+        # replace path_folder2 with output_folder
+        path_folder2_output = path_folder2.replace(
+            mod_folder, output_folder).replace(language_folder, output_folder)
+        new_path_file_output = new_path_file.replace(
+            mod_folder, output_folder).replace(language_folder, output_folder)
+        print(f"Creating folder: {path_folder2_output}")
+        os.makedirs(path_folder2_output, exist_ok=True)
+        new_path_file_mod = new_path_file.replace(
+            language_folder, mod_folder).replace(output_folder, mod_folder)
+        print(f"Copying file: {new_path_file_mod} to {new_path_file_output}")
+        shutil.copy(new_path_file_mod, new_path_file_output)
+        PEExport(new_path_file_output)
+        # if in the path_folder or path_folder2_output there is a .bf file, run the function des_case_bf
+        for root, dirs, files in os.walk(path_folder2_output):
+            for file in files:
+                if file.lower().endswith('.bf'):
+                    print(f"Found bf file: {file}")
+                    des_case_bf(os.path.join(root, file))
+        for root, dirs, files in os.walk(path_folder2):
+            for file in files:
+                if file.lower().endswith('.bf'):
+                    print(f"Found bf file: {file}")
+                    des_case_bf(os.path.join(root, file))
 
     def process_msg(name_file):
 
@@ -634,37 +675,61 @@ def run_program():
 
     # Check all types of files in the "Mod" folder
     # Read all files in the root and its subfolders
-    for folder_name, subfolders, files in os.walk(mod_folder):
-        # Read all files in the current folder
-        for name_file in files:
-            print(f"Processing file: {name_file}")
-            file_extension = name_file.split('.')[-1]
-            switcher = {
-                'bmd': des_case_bmd,
-                'bf': des_case_bf,
-                'BMD': des_case_bmd,
-                'BF': des_case_bf
-            }
-            if file_extension in switcher:
-                print(f"Processing switcher file: {name_file}")
-                switcher[file_extension](os.path.join(folder_name, name_file))
+    def check_files_mod():
+        for folder_name, subfolders, files in os.walk(mod_folder):
+            # Read all files in the current folder
+            for name_file in files:
+                print(f"Processing file: {name_file}")
+                file_extension = name_file.split('.')[-1]
+                switcher = {
+                    'bmd': des_case_bmd,
+                    'bf': des_case_bf,
+                    'BMD': des_case_bmd,
+                    'BF': des_case_bf,
+                    'PAK': des_case_pakbinpac,
+                    'PAC': des_case_pakbinpac,
+                    'BIN': des_case_pakbinpac,
+                    'pak': des_case_pakbinpac,
+                    'pac': des_case_pakbinpac,
+                    'bin': des_case_pakbinpac,
+                }
+                if file_extension not in switcher:
+                    print(f"Invalid file extension: {name_file}")
+                else:
+                    print(f"Processing switcher file: {name_file}")
+                    switcher[file_extension](
+                        os.path.join(folder_name, name_file))
 
     # Check all types of files in the "Language" folder
     # Read all files in the root and its subfolders
-    for folder_name, subfolders, files in os.walk(language_folder):
-        # Read all files in the current folder
-        for name_file in files:
-            print(f"Processing file: {name_file}")
-            file_extension = name_file.split('.')[-1]
-            switcher = {
-                'bmd': des_case_bmd,
-                'bf': des_case_bf,
-                'BMD': des_case_bmd,
-                'BF': des_case_bf
-            }
-            if file_extension in switcher:
-                print(f"Processing switcher file: {name_file}")
-                switcher[file_extension](os.path.join(folder_name, name_file))
+    def check_files_language():
+        for folder_name, subfolders, files in os.walk(language_folder):
+            # Read all files in the current folder
+            for name_file in files:
+                print(f"Processing file: {name_file}")
+                file_extension = name_file.split('.')[-1]
+                switcher = {
+                    'bmd': des_case_bmd,
+                    'bf': des_case_bf,
+                    'BMD': des_case_bmd,
+                    'BF': des_case_bf,
+                    'PAK': des_case_pakbinpac,
+                    'PAC': des_case_pakbinpac,
+                    'BIN': des_case_pakbinpac,
+                    'pak': des_case_pakbinpac,
+                    'pac': des_case_pakbinpac,
+                    'bin': des_case_pakbinpac,
+                }
+                if file_extension not in switcher:
+                    print(f"Invalid file extension: {name_file}")
+                else:
+                    print(f"Processing switcher file: {name_file}")
+                    switcher[file_extension](
+                        os.path.join(folder_name, name_file))
+
+    # Run check_files_mod() and check_files_language()
+    check_files_mod()
+    check_files_language()
 
     # Proccess all .msg files in the "Mod" folder and make the changes in the "Output" folder
     for root, dirs, files in os.walk(mod_folder):
@@ -701,6 +766,39 @@ def run_program():
                 PEImport(mod_file_path)
             mod_file_name_new = mod_file.split('.')[0]
 
+    # Import all .pac, .pak and .bin files in the "Output" folder with PEImport
+    # Get all the files in the "Output" folder
+    for root, dirs, files in os.walk(output_folder):
+        # Read all files in the current folder
+        for mod_file in files:
+            # Check if the file is a .pac, .pak or .bin
+            if mod_file.lower().endswith(('.pac', '.pak', '.bin')):
+                mod_file_path = os.path.join(root, mod_file)
+                print(f"Importing {mod_file} in {root}")
+                PEImport(mod_file_path)
+
+    # Copy all .pac, .pak and .bin files one folder up
+    # Get all the files in the "Output" folder
+    for root, dirs, files in os.walk(output_folder):
+        # Read all files in the current folder
+        for mod_file in files:
+            # Check if the file is a .pac, .pak or .bin
+            if mod_file.lower().endswith(('.pac', '.pak', '.bin')):
+                # Get the path of the file
+                mod_file_path = os.path.join(root, mod_file)
+                # Get the path of the folder one level up
+                mod_file_path_up = os.path.join(root, '..')
+                # Copy the file to the folder one level up
+                print(f"Copying {mod_file} to {mod_file_path_up}")
+                shutil.copy(mod_file_path, mod_file_path_up)
+                # Delete all the files froo the path of the file
+                # get the dirname
+                mod_file_path_dirname = os.path.dirname(mod_file_path)
+                print(f"Deleting all files from {mod_file_path_dirname}")
+                for root, dirs, files in os.walk(mod_file_path_dirname):
+                    for name in files:
+                        os.remove(os.path.join(root, name))
+
     # print(f"Deleting extra files from {output_folder}...")
 
     def delete_files_not_in_list(folder_path, files_list):
@@ -733,6 +831,20 @@ def run_program():
     delete_files_not_in_list(output_folder, mod_files_list)
     delete_files_not_in_list(mod_folder, mod_files_list)
     delete_files_not_in_list(language_folder, language_files_list)
+
+    def delete_empty_folders(path):
+        for root, dirs, files in os.walk(path, topdown=False):
+            for name in dirs:
+                full_path = os.path.join(root, name)
+                if not os.listdir(full_path):  # check if directory is empty
+                    os.rmdir(full_path)
+                else:
+                    # recursively delete all files and subfolders
+                    delete_empty_folders(full_path)
+
+    delete_empty_folders(output_folder)
+    delete_empty_folders(mod_folder)
+    delete_empty_folders(language_folder)
 
     print("Done!")
     enable_button()
