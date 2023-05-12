@@ -27,5 +27,5 @@ pip install sv-ttk
 ```
 Run the program with the following command:
 ```python
-python P5RTextSwapper.py
+python P5TextSwapper.py
 ```
