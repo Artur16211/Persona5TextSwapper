@@ -66,7 +66,7 @@ def disable_button():
 
 def enable_button():
     run_button.config(state="normal")
-    dropdown.config(state="disable")
+    dropdown.config(state="normal")
     mod_folder_button.config(state="normal")
     language_folder_button.config(state="normal")
     output_folder_button.config(state="normal")
