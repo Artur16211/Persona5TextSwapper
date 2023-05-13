@@ -55,10 +55,24 @@ root = customtkinter.CTk()
 
 def disable_button():
     run_button.config(state="disabled")
+    dropdown.config(state="disable")
+    mod_folder_button.config(state="disable")
+    language_folder_button.config(state="disable")
+    output_folder_button.config(state="disable")
+    mod_folder_entry.config(state="disable")
+    language_folder_entry.config(state="disable")
+    output_folder_entry.config(state="disable")
 
 
 def enable_button():
     run_button.config(state="normal")
+    dropdown.config(state="disable")
+    mod_folder_button.config(state="normal")
+    language_folder_button.config(state="normal")
+    output_folder_button.config(state="normal")
+    mod_folder_entry.config(state="normal")
+    language_folder_entry.config(state="normal")
+    output_folder_entry.config(state="normal")
 
 
 # Log box with scrollbar and no text editing
