@@ -372,17 +372,22 @@ def run_program():
         }
 
         for key, value in mod_msgs_dict.items():
-            for char, replacement in replacement_dict.items():
-                value = value.replace(char, replacement)
-            mod_msgs_dict[key] = value
+            if value is not None:
+                for char, replacement in replacement_dict.items():
+                    value = value.replace(char, replacement)
+                mod_msgs_dict[key] = value
 
         # Replace the text strings that match the dictionary keys
         with open(name_file_output, 'r', encoding='utf-8-sig', errors='ignore') as f:
             filedata = f.read()
+
         for key, value in mod_msgs_dict.items():
-            filedata = filedata.replace(key, value)
+            if value is not None:
+                filedata = filedata.replace(key, value)
+
         with open(name_file_output + ".tmp", 'w', encoding='utf-8-sig', errors='ignore') as f:
             f.write(filedata)
+
 
         # Delete the original file
         os.remove(name_file_output)
@@ -476,8 +481,8 @@ def run_program():
                 print(f"Skipping {file} as it doesn't exist")
                 continue
 
-    # delete_files_not_in_list(output_folder, mod_files_list)
-    # delete_files_not_in_list(mod_folder, mod_files_list)
+    delete_files_not_in_list(output_folder, mod_files_list)
+    delete_files_not_in_list(mod_folder, mod_files_list)
     # delete_files_not_in_list(language_folder, language_files_list)
 
     def delete_empty_folders(path):
@@ -490,8 +495,8 @@ def run_program():
                     # recursively delete all files and subfolders
                     delete_empty_folders(full_path)
 
-    # delete_empty_folders(output_folder)
-    # delete_empty_folders(mod_folder)
+    delete_empty_folders(output_folder)
+    delete_empty_folders(mod_folder)
     # delete_empty_folders(language_folder)
 
     print("Done!")
