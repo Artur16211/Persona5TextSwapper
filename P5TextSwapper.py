@@ -333,7 +333,7 @@ def run_program():
         os.makedirs(os.path.dirname(name_file_output), exist_ok=True)
         shutil.copy(name_file_msg, name_file_output)
 
-        # Crea una lista conlos mensajes de mod_msgs en español
+        # Make a list with the messages in spanish
         mod_msgs_es = []
         # Translate the messages to spanish
         for msg in mod_msgs:
@@ -353,8 +353,30 @@ def run_program():
         # Delete the \n from the key
         mod_msgs_dict = {key.replace(
             '\n', ''): value for key, value in mod_msgs_dict.items()}
+        
+        replacement_dict = {
+            'á': '茨',
+            'é': '姻',
+            'í': '胤',
+            'ó': '吋',
+            'ú': '雨',
+            'ñ': '隠',
+            '¿': '夷',
+            '¡': '斡',
+            'Á': '威',
+            'É': '畏',
+            'Í': '緯',
+            'Ó': '遺',
+            'Ú': '郁',
+            'Ñ': '謂'
+        }
 
-        # Reemplaza las cadenas de texto que coincidan con las claves del diccionario
+        for key, value in mod_msgs_dict.items():
+            for char, replacement in replacement_dict.items():
+                value = value.replace(char, replacement)
+            mod_msgs_dict[key] = value
+
+        # Replace the text strings that match the dictionary keys
         with open(name_file_output, 'r', encoding='utf-8-sig', errors='ignore') as f:
             filedata = f.read()
         for key, value in mod_msgs_dict.items():
@@ -362,9 +384,9 @@ def run_program():
         with open(name_file_output + ".tmp", 'w', encoding='utf-8-sig', errors='ignore') as f:
             f.write(filedata)
 
-        # Eliminamos el archivo original
+        # Delete the original file
         os.remove(name_file_output)
-        # Renombramos el archivo temporal al nombre original
+        # Rename the temporary file to the original name
         os.rename(name_file_output + ".tmp", name_file_output)
 
     # Delete all files that are not .bin, .bmd, .pak or .bf
