@@ -12,6 +12,7 @@ import sys
 import configparser
 
 from tkinter import filedialog
+from deep_translator import GoogleTranslator
 
 
 class TextRedirector(object):
@@ -40,13 +41,13 @@ if os.path.isfile('config.ini'):
 else:
     # If it doesn't exist, create it with default values
     config['Folders'] = {'mod_folder': '',
-                         'language_folder': '', 'output_folder': '', 'game': 'Persona 5 Royal'}
+                         'output_folder': '', 'game': 'Persona 5 Royal'}
     with open('config.ini', 'w') as configfile:
         config.write(configfile)
 
 # Get the saved values or set default values if they don't exist
 mod_folder = config.get('Folders', 'mod_folder', fallback='')
-language_folder = config.get('Folders', 'language_folder', fallback='')
+# language_folder = config.get('Folders', 'language_folder', fallback='')
 output_folder = config.get('Folders', 'output_folder', fallback='')
 game = config.get('Folders', 'game', fallback='Persona 5 Royal')
 
@@ -68,10 +69,10 @@ def enable_button():
     run_button.config(state="normal")
     dropdown.config(state="normal")
     mod_folder_button.config(state="normal")
-    language_folder_button.config(state="normal")
+    # language_folder_button.config(state="normal")
     output_folder_button.config(state="normal")
     mod_folder_entry.config(state="normal")
-    language_folder_entry.config(state="normal")
+    # language_folder_entry.config(state="normal")
     output_folder_entry.config(state="normal")
 
 
@@ -153,7 +154,7 @@ def browse_output_folder():
 
 
 def run_program():
-    if not mod_folder_entry.get() or not language_folder_entry.get() or not output_folder_entry.get():
+    if not mod_folder_entry.get() or not output_folder_entry.get():
         messagebox.showerror(
             "Error", "Please fill in all fields.")
         return
@@ -164,14 +165,7 @@ def run_program():
     log_box.config(state=tk.DISABLED)
 
     mod_folder = mod_folder_entry.get()
-    language_folder = language_folder_entry.get()
     output_folder = output_folder_entry.get()
-
-    # Get the name of the last folder in the paths
-    mod_folder_name = os.path.basename(os.path.normpath(mod_folder))
-    language_folder_name = os.path.basename(
-        os.path.normpath(language_folder))
-    output_folder_name = os.path.basename(os.path.normpath(output_folder))
 
     # List files and folders in mod_folder including those in subfolders and full path
     mod_files_list = []
@@ -183,48 +177,6 @@ def run_program():
     # Delete the value of mod_folder from the path
     mod_files_list = [x.replace(mod_folder, '') for x in mod_files_list]
 
-    # List files and folders in language_folder including those in subfolders and full path
-    language_files_list = []
-    for root, dirs, files in os.walk(language_folder):
-        for file in files:
-            path = os.path.join(root, file)
-            language_files_list.append(path)
-
-    # Delete the value of language_folder from the path
-    language_files_list = [x.replace(language_folder, '')
-                           for x in language_files_list]
-
-    print("Deleting files from language_folder that don't exist in mod_folder")
-
-    # If the file exists in language_folder and not in mod_folder, delete it from language_folder
-    for file in language_files_list:
-        full_path = language_folder + file
-        if file not in mod_files_list:
-            os.remove(full_path)
-
-    print("Copying files missing in language_folder from mod_folder")
-
-    # If the file exists in mod_folder and not in language_folder, copy it from mod_folder to language_folder to avoid errors
-    for file in mod_files_list:
-        full_path = mod_folder + file
-        if file not in language_files_list:
-            # New path for the file
-            new_path = language_folder + file
-            print("Copying " + file + " to " + new_path)
-            shutil.copy(full_path, new_path)
-
-    print("Deleting files with wrong extension")
-
-    language_files_list_updated = []
-    for root, dirs, files in os.walk(language_folder):
-        for file in files:
-            path = os.path.join(root, file)
-            language_files_list_updated.append(path)
-
-    # Delete the path of language_folder from the list
-    language_files_list_updated = [x.replace(language_folder, '')
-                                   for x in language_files_list_updated]
-
     mod_files_list_updated = []
     for root, dirs, files in os.walk(mod_folder):
         for file in files:
@@ -234,13 +186,6 @@ def run_program():
     # Delete the path of mod_folder from the list
     mod_files_list_updated = [x.replace(mod_folder, '')
                               for x in mod_files_list_updated]
-
-    # Delete files from language_folder that don't end with .bf or .bmd
-    for file in language_files_list_updated:
-        full_path = language_folder + file
-        if not file.lower().endswith((".bf", ".bmd")):
-            # print(f"El archivo {file} no es .bf o .bmd, se eliminará.")
-            os.remove(full_path)
 
     for file in mod_files_list_updated:
         full_path = mod_folder + file
@@ -338,310 +283,92 @@ def run_program():
             if dat_file.startswith(name_file_dirname):
                 # replace the mod_folder or language_folder with the output_folder
                 name_file_dirname_output = name_file_dirname.replace(
-                    mod_folder, output_folder).replace(language_folder, output_folder)
+                    mod_folder, output_folder)
         # create the output directory if it doesn't exist
                 os.makedirs(os.path.dirname(
                     name_file_dirname_output), exist_ok=True)
         # copy the file to the output directory
                 shutil.copy(dat_file, name_file_dirname_output)
 
-    def com_case_bmd(name_file):
-        ASCCompile(name_file)
-
     # replace
-
     def process_msg(name_file):
 
         # get the name of the file without the extension and add .msg
-        name_file_msg = name_file
+        name_file_msg = os.path.splitext(name_file)[0] + '.msg'
 
-        # replace the mod_folder with language_folder
-        name_file_msg_editlang = name_file_msg.replace(
-            mod_folder, language_folder)
-        # replace the language_folder with mod_folder
-        name_file_msg_editmod = name_file_msg.replace(
-            language_folder, mod_folder)
-
-        # name_file_msg get the name_file_msg, and change the Mod folder for the Language folder
-        name_file_msg_lang = os.path.join(
-            name_file_msg_editlang)
-        print("the name of the file is: ", name_file_msg_lang)
-
-        # name_file_msg from the mod folder
-        name_file_msg_mod = os.path.join(
-            name_file_msg_editmod)
-
-        name_file_msg_mod_msg = name_file_msg
-
-        # get the route but on the output folder
-        name_file_with_file = os.path.join(
-            output_folder, os.path.basename(name_file_msg_mod_msg))
-
-        mod_msg_names = []  # list with the names of the msg
-        lang_msg_names = []  # list with the names of the msg
-
-        excluded_keyslist = ['Ryuji', 'Morgana', 'Yusuke', 'Ann', 'Makoto', 'Futaba', 'Haru', 'Goro', 'Akechi', 'Kasumi', 'Yoshisawa', 'Kamoshida', 'Madarame', 'Kaneshiro',    'Okumura', 'Shido', 'Yaldabaoth', 'Sojiro', 'Sae', 'Nijima', 'Igor', 'Caroline', 'Justine', 'Tae', 'Takemi',
-                             'Munehisa', 'Chihaya', 'Mifune', 'Yuki', 'Mishima', 'Ohya', 'Kawakami', 'Toranosuke', 'Shinya', 'Oya', 'Ichiko', 'Sadayo', 'Hifumi', 'Togo', 'Sugimura', 'Kawanabe', 'Iwai', 'Shiho', 'Wakaba', 'Maruki', 'Jose', 'Takuto', 'Joker', 'Kitagawa', 'Niijima', 'Sakamoto', 'Takamaki', 'Sakura', 'Sumire']
-
-        with open(name_file_msg_lang, 'r', encoding='utf-8-sig', errors='ignore') as f:
-            for line in f:
-                if line.startswith('[msg'):
-                    # Remove everything before the second space and the [ and ]
-                    fields = line.strip().split(' ', 2)
-                    if len(fields) >= 3:
-                        key = fields[2]
-                        key = key[1:-1]
-                        if key not in excluded_keyslist:
-                            # Save the key in the msg_names list
-                            lang_msg_names.append(key)
-                        else:
-                            print(
-                                f"Warning: Line '{line.strip()}' in {name_file_msg_lang} is not in the expected format.")
-
-        # Read the lines of the mod .msg file and save the lines that start with '[msg'
-        with open(name_file_msg_mod, 'r', encoding='utf-8-sig', errors='ignore') as f:
-            for line in f:
-                if line.startswith('[msg'):
-                    # Remove everything before the second space and the [ and ]
-                    fields = line.strip().split(' ', 2)
-                    if len(fields) >= 3:
-                        key = fields[2]
-                        key = key[1:-1]
-                        if key not in excluded_keyslist:
-                            # Save the line in the msg_names list
-                            mod_msg_names.append(key)
-                    else:
-                        print(
-                            f"Warning: Line '{line.strip()}' in {name_file_msg_mod} is not in the expected format.")
-
-        # Get the two lists and join them by index
-        msg_names = zip(mod_msg_names, lang_msg_names)
-
-        # Make the dictionary from the joined lists
-        dic_names = dict(msg_names)
-
-        lang_msg_lines = {}
+        # make a list with the msg
+        mod_msgs = []
 
         match = r"\[[^\[\]]*\]|\[[^\[]*[^\s\[\]]\]"
 
-        # Read the lines of the language .msg file and save the lines that start with '[msg'
-        with open(name_file_msg_lang, 'r', encoding='utf-8-sig', errors='ignore') as f:
+        # Read the lines of the mod .msg file when not starting with [msg or empty line or // and create a list with the lines
+        with open(name_file_msg, 'r', encoding='utf-8-sig', errors='ignore') as f:
             for line in f:
-                if line.startswith('[msg'):
-                    value = []
+                if not line.startswith('[msg') and not line.startswith('//') and not line.strip() == '' and not line.startswith('[sel'):
+                    # Apply regular expression to remove text between brackets
+                    result = []
+                    position = 0
                     while True:
-                        next_line = next(f).strip()
-                        if next_line:
-                            # Apply regular expression to remove text between brackets
-                            result = []
-                            position = 0
-                            while True:
-                                coincidencia = re.search(
-                                    match, next_line[position:])
-                                if coincidencia:
-                                    result.append(coincidencia.group(0))
-                                    position += coincidencia.end()
-                                else:
-                                    break
-                            # Check if the next character is a space or a bracket
-                                if len(next_line[position:].strip()) == 0 or next_line[position:position+5] == "[var " or next_line[position:position+7] == "[f 4 1]" or next_line[position:position+7] == "[f 4 2]" or next_line[position:position+5] == "[clr " or next_line[position] != "[":
-                                    break
-                            # Remove the text between brackets and the characters "[w]" and "[e]"
-                            for item in result:
-                                next_line = next_line.replace(item, "")
-                            next_line = next_line.replace("[w]", "").replace(
-                                "[e]", "")
-                        # Fix compilation error, replace "/" with "l"
-                            value.append(next_line)
+                        coincidencia = re.search(match, line[position:])
+                        if coincidencia:
+                            result.append(coincidencia.group(0))
+                            position += coincidencia.end()
                         else:
                             break
-                    lang_msg_lines[line.strip()] = "$f$".join(value)
-                if line.startswith('[sel'):
-                    value = []
-                    while True:
-                        next_line = next(f).strip()
-                        if next_line:
-                            value.append(next_line)
-                        else:
+
+                        # Check if the next character is a space or a bracket
+                        if len(line[position:].strip()) == 0 or line[position:position+5] == "[var " or line[position:position+7] == "[f 4 1]" or line[position:position+7] == "[f 4 2]" or line[position:position+5] == "[clr " or line[position] != "[":
                             break
-                    lang_msg_lines[line.strip()] = "$f$".join(value)
 
-        mod_msg_lines = {}
+                    # Remove the text between brackets and the characters "[w]" and "[e]"
+                    for item in result:
+                        line = line.replace(item, "")
+                    line = line.replace("[w]", "").replace("[e]", "")
 
-        # Open mod file and process each line
-        with open(name_file_msg_mod, 'r', encoding='utf-8-sig', errors='ignore') as f:
-            for line in f:
-                if line.startswith('[msg'):
-                    value = []
-                    while True:
-                        next_line = next(f).strip()
-                        if next_line:
-                            # Apply regular expression to remove text between brackets
-                            result = []
-                            position = 0
-                            while True:
-                                coincidencia = re.search(
-                                    match, next_line[position:])
-                                if coincidencia:
-                                    result.append(coincidencia.group(0))
-                                    position += coincidencia.end()
-                                else:
-                                    break
-                            # Check if the next character is a space or a bracket
-                                if len(next_line[position:].strip()) == 0 or next_line[position:position+5] == "[var " or next_line[position:position+7] == "[f 4 1]" or next_line[position:position+7] == "[f 4 2]" or next_line[position:position+5] == "[clr " or next_line[position] != "[":
-                                    break
-                        # Remove the text between brackets and the characters "[w]" and "[e]"
-                            for item in result:
-                                next_line = next_line.replace(item, "")
-                            next_line = next_line.replace("[w]", "").replace(
-                                "[e]", "")
-                        # Fix compilation error, replace "/" with "l"
-                            value.append(next_line)
-                        else:
-                            break
-                    mod_msg_lines[line.strip()] = "$f$".join(value)
-                if line.startswith('[sel'):
-                    value = []
-                    while True:
-                        next_line = next(f).strip()
-                        if next_line:
-                            value.append(next_line)
-                        else:
-                            break
-                    mod_msg_lines[line.strip()] = "$f$".join(value)
+                    # add the line to the list
+                    mod_msgs.append(line)
 
-        # Delete [name] from key
-        for key in mod_msg_lines.copy().keys():
-            # delete all next from the second space
-            new_key = key.split(' ', 2)[0] + ' ' + key.split(' ', 2)[1]
-        # remove the last character (']') from the new key
-            new_key = new_key.rstrip(']')
-        # replace the key with the new key
-            mod_msg_lines[new_key] = mod_msg_lines.pop(key)
+        # Copy the .msg file to the output folder
+        name_file_output = name_file_msg.replace(mod_folder, output_folder)
+        os.makedirs(os.path.dirname(name_file_output), exist_ok=True)
+        shutil.copy(name_file_msg, name_file_output)
 
-        for key in lang_msg_lines.copy().keys():
-            # delete all next from the second space
-            new_key = key.split(' ', 2)[0] + ' ' + key.split(' ', 2)[1]
-        # remove the last character (']') from the new key
-            new_key = new_key.rstrip(']')
-        # replace the key with the new key
-            lang_msg_lines[new_key] = lang_msg_lines.pop(key)
+        # Crea una lista conlos mensajes de mod_msgs en español
+        mod_msgs_es = []
+        # Translate the messages to spanish
+        for msg in mod_msgs:
+            mod_msgs_es.append(GoogleTranslator(
+                source='en', target='es').translate(msg))
 
-        # Get the common keys
-        common_keys = set(mod_msg_lines.keys()) & set(lang_msg_lines.keys())
+        # Create a dictionary with the messages in english as keys and the messages in spanish as values
+        mod_msgs_dict = dict(zip(mod_msgs, mod_msgs_es))
 
-        # Make a new dictionary with the corresponding keys and values of both dictionaries
-        msg_matches = {}
+        # print the dictionary
+        # for key, value in mod_msgs_dict.items():
+        # print(key, ' : ', value)
 
-        # Add the keys and values of the common keys
-        for key in common_keys:
-            mod_msg_text = mod_msg_lines[key].strip()
-            lang_msg_text = lang_msg_lines[key].strip()
-            msg_matches[mod_msg_text] = lang_msg_text
+        print(
+            f"Reemplazando mensajes en el archivo .msg de {name_file_output}...")
 
-        keys_to_delete = []
+        # Delete the \n from the key
+        mod_msgs_dict = {key.replace(
+            '\n', ''): value for key, value in mod_msgs_dict.items()}
 
-        keys_to_add = []
+        # Reemplaza las cadenas de texto que coincidan con las claves del diccionario
+        with open(name_file_output, 'r', encoding='utf-8-sig', errors='ignore') as f:
+            filedata = f.read()
+        for key, value in mod_msgs_dict.items():
+            filedata = filedata.replace(key, value)
+        with open(name_file_output + ".tmp", 'w', encoding='utf-8-sig', errors='ignore') as f:
+            f.write(filedata)
 
-        for key, value in msg_matches.items():
-            if "$f$" in key:
-                original_key = key
-                key = key.split("$f$")
-                value = value.split("$f$")
-                for i in range(len(key)):
-                    if i < len(key) and i < len(value):
-                        keys_to_add.append((key[i], value[i]))
-                keys_to_delete.append(original_key)
-            if "$f$" in value:
-                original_key = key
-                key = key.split("$f$")
-                value = value.split("$f$")
-                for i in range(len(key)):
-                    if i < len(key) and i < len(value):
-                        keys_to_add.append((key[i], value[i]))
-                keys_to_delete.append(original_key)
-
-        # Delete the keys from the list
-        for key in keys_to_delete:
-            del msg_matches[key]
-
-        # Add the keys from the list
-        for key, value in keys_to_add:
-            msg_matches[key] = value
-
-        # Check if the file has the .msg extension
-        if os.path.splitext(name_file_msg)[1].lower() != '.msg':
-            return
-
-        # Change language_folder or mod_folder to output_folder
-        name_file_msg_mod_msg2 = name_file_msg_mod_msg.replace(
-            language_folder, output_folder).replace(mod_folder, output_folder)
-        # delete the file_name from the path
-        file_name = os.path.basename(name_file_msg_mod_msg2)
-        # delete the file_name from the path
-        output_folder_msg_withoutroute = name_file_msg_mod_msg2.replace(
-            file_name, '')
-
-        print(f"Coping {name_file_msg_mod} to {name_file_msg_mod_msg2}")
-        # Check if the output folder exists, otherwise create it
-        if not os.path.exists(output_folder_msg_withoutroute):
-            os.makedirs(output_folder_msg_withoutroute)
-
-        # Copy the file to the output folder
-        shutil.copy(name_file_msg_mod_msg, name_file_msg_mod_msg2)
-
-        num_lines_replaced = 0
-
-        # Replace the lines of the name_file.msg file in the output_folder folder that match key with the value of msg_matches[key]
-        if os.path.isfile(name_file_msg_mod_msg2) and name_file_msg_mod_msg2.lower().endswith('.msg'):
-            with open(name_file_msg_mod_msg2, 'r', encoding='utf-8-sig', errors='ignore') as f:
-                content = f.read()
-            for key, value in msg_matches.items():
-                content, num_replaced = content.replace(
-                    key, value), content.count(key)
-                num_lines_replaced += num_replaced
-            with open(name_file_msg_mod_msg2, 'w', encoding='utf-8-sig', errors='ignore') as f:
-                f.write(content)
-        # Replace "/" with "l"
-        if os.path.isfile(name_file_msg_mod_msg2) and name_file_msg_mod_msg2.lower().endswith('.msg'):
-            with open(name_file_msg_mod_msg2, 'r', encoding='utf-8-sig', errors='ignore') as f:
-                content = f.readlines()
-            with open(name_file_msg_mod_msg2, 'w', encoding='utf-8-sig', errors='ignore') as f:
-                for line in content:
-                    # check if the line not start with [msg, [sel, // or is empty
-                    if not line.startswith('[msg') and not line.startswith('//') and not line.startswith('[sel') and line.strip():
-                        line = line.replace('/', 'l')
-                    f.write(line)
-        # Add [f 0 5 -258] at the start of all lines that do not start with [msg, [sel or are empty
-        with open(name_file_msg_mod_msg2, 'r', encoding='utf-8-sig', errors='ignore') as f:
-            content = f.readlines()
-        with open(name_file_msg_mod_msg2, 'w', encoding='utf-8-sig', errors='ignore') as f:
-            for line in content:
-                if line.startswith('[msg') or line.startswith('//') or line.startswith('[sel') or not line.strip():
-                    f.write(line)
-                else:
-                    f.write('[f 0 5 -258]' + line)
-        # Replace the lines with the dic_names dictionary, search the keys and replace them with their values in the name_file_with_file file
-        with open(name_file_msg_mod_msg2, 'r', encoding='utf-8-sig', errors='ignore') as f:
-            content = f.readlines()
-        with open(name_file_msg_mod_msg2, 'w', encoding='utf-8-sig', errors='ignore') as f:
-            for line in content:
-                if line.startswith("[msg"):
-                    for key, value in dic_names.items():
-                        line, num_replaced = line.replace(
-                            key, value), line.count(key)
-                        num_lines_replaced += num_replaced
-                f.write(line)
-
-        if num_lines_replaced == 0:
-            print(f"No lines replaced in {name_file_msg_mod_msg2}")
-        elif num_lines_replaced == 1:
-            print(f"1 line replaced in {name_file_msg_mod_msg2}")
-        else:
-            print(f"{num_lines_replaced} lines replaced in {name_file_msg_mod_msg2}")
+        # Eliminamos el archivo original
+        os.remove(name_file_output)
+        # Renombramos el archivo temporal al nombre original
+        os.rename(name_file_output + ".tmp", name_file_output)
 
     # Delete all files that are not .bin, .bmd, .pak or .bf
-    for folder in [mod_folder, language_folder]:
+    for folder in [mod_folder]:
         for file in os.scandir(folder):
             if file.is_file() and not file.name.lower().endswith((".bin", ".bmd", ".pak", ".bf")):
                 os.remove(file.path)
@@ -649,23 +376,6 @@ def run_program():
     # Check all types of files in the "Mod" folder
     # Read all files in the root and its subfolders
     for folder_name, subfolders, files in os.walk(mod_folder):
-        # Read all files in the current folder
-        for name_file in files:
-            print(f"Processing file: {name_file}")
-            file_extension = name_file.split('.')[-1]
-            switcher = {
-                'bmd': des_case_bmd,
-                'bf': des_case_bf,
-                'BMD': des_case_bmd,
-                'BF': des_case_bf
-            }
-            if file_extension in switcher:
-                print(f"Processing switcher file: {name_file}")
-                switcher[file_extension](os.path.join(folder_name, name_file))
-
-    # Check all types of files in the "Language" folder
-    # Read all files in the root and its subfolders
-    for folder_name, subfolders, files in os.walk(language_folder):
         # Read all files in the current folder
         for name_file in files:
             print(f"Processing file: {name_file}")
@@ -744,9 +454,9 @@ def run_program():
                 print(f"Skipping {file} as it doesn't exist")
                 continue
 
-    delete_files_not_in_list(output_folder, mod_files_list)
-    delete_files_not_in_list(mod_folder, mod_files_list)
-    delete_files_not_in_list(language_folder, language_files_list)
+    # delete_files_not_in_list(output_folder, mod_files_list)
+    # delete_files_not_in_list(mod_folder, mod_files_list)
+    # delete_files_not_in_list(language_folder, language_files_list)
 
     def delete_empty_folders(path):
         for root, dirs, files in os.walk(path, topdown=False):
@@ -758,9 +468,9 @@ def run_program():
                     # recursively delete all files and subfolders
                     delete_empty_folders(full_path)
 
-    delete_empty_folders(output_folder)
-    delete_empty_folders(mod_folder)
-    delete_empty_folders(language_folder)
+    # delete_empty_folders(output_folder)
+    # delete_empty_folders(mod_folder)
+    # delete_empty_folders(language_folder)
 
     print("Done!")
     enable_button()
@@ -783,7 +493,10 @@ language_folder_label = ttk.Label(
 language_folder_entry = ttk.Entry(root, width=60)
 language_folder_button = ttk.Button(
     root, text="Browse", command=browse_language_folder)
-language_folder_entry.insert(0, language_folder)  # Insert the saved value
+# language_folder_entry.insert(0, language_folder)  # Insert the saved value
+# Disable the language folder entry and button
+language_folder_entry.config(state="disabled")
+language_folder_button.config(state="disabled")
 
 language_folder_label.grid(row=1, column=0, padx=5, pady=10)
 language_folder_entry.grid(row=1, column=1, padx=5, pady=10)
@@ -810,7 +523,7 @@ def save_config():
     # Save the values in the config file
     config['Folders'] = {
         'mod_folder': mod_folder_entry.get(),
-        'language_folder': language_folder_entry.get(),
+        # 'language_folder': language_folder_entry.get(),
         'output_folder': output_folder_entry.get(),
         'game': game
     }
@@ -835,6 +548,6 @@ customtkinter.set_appearance_mode("dark")
 
 root.iconbitmap("dependencies/test2.ico")
 
-root.title("Persona 5 Text Swapper")
+root.title("Persona 5 Text Translator")
 
 root.mainloop()
