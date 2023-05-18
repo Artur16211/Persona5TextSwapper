@@ -330,6 +330,8 @@ def run_program():
                     if last_occurrence_index != -1:
                         line = line[:last_occurrence_index] + line[last_occurrence_index:].replace("[n]", "", 1)
 
+                    
+
                     # add the line to the list
                     mod_msgs.append(line)
 
@@ -342,8 +344,10 @@ def run_program():
         mod_msgs_es = []
         # Translate the messages to spanish
         for msg in mod_msgs:
+            # replace the "[n]" with "" to avoid errors
+            msgn = msg.replace("[n]", "")
             mod_msgs_es.append(GoogleTranslator(
-                source='en', target='es').translate(msg))
+                source='en', target='es').translate(msgn))
 
         # Create a dictionary with the messages in english as keys and the messages in spanish as values
         mod_msgs_dict = dict(zip(mod_msgs, mod_msgs_es))
@@ -380,6 +384,29 @@ def run_program():
             if value is not None:
                 for char, replacement in replacement_dict.items():
                     value = value.replace(char, replacement)
+                # if the value no has [n], replace "" with "[n]" one time if the character count is more than 37
+                # Agregar [n] en intervalos de 37 caracteres completos
+                if len(value) >= 37:
+                    resultado = ""
+                    inicio = 0
+
+                    while inicio + 37 <= len(value):
+                        fin = inicio + 37
+
+                        espacio_idx = value.rfind(" ", inicio, fin)  # Encuentra el último espacio en el intervalo actual
+                        if espacio_idx != -1:
+                            resultado += value[inicio:espacio_idx] + "[n]" + value[espacio_idx:fin]
+                        else:
+                            resultado += value[inicio:fin]
+
+                        inicio = fin
+
+                    resultado += value[inicio:]  # Agrega el resto del texto después del último intervalo completo
+
+                    value = resultado
+
+                # Delete the spaces before and after the [n]
+                value = value.replace(' [n] ', '[n]').replace(' [n]', '[n]').replace('[n] ', '[n]')
                 mod_msgs_dict[key] = value
 
         # Replace the text strings that match the dictionary keys
