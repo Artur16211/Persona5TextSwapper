@@ -103,7 +103,7 @@ def on_select(event):
 
 
 # Options for the dropdown
-options = ["Persona 5 Royal", "Persona 5"]
+options = ["Persona 5 Royal", "Persona 5", "Persona Q2"]
 
 # Make the dropdown
 dropdown = ttk.Combobox(root, values=options)
@@ -212,10 +212,14 @@ def run_program():
             print(f"Decompiling BMD file: {input_file_name} with P5R library")
             subprocess.run([atlus_script_tools_path, input_file_path,
                             "-Decompiled", "-Library", "P5R", "-Encoding", "P5"])
-        else:
+        elif game == "Persona 5":
             print(f"Decompiling BMD file: {input_file_name} with P5 library")
             subprocess.run([atlus_script_tools_path, input_file_path,
                             "-Decompiled", "-Library", "P5", "-Encoding", "P5"])
+        elif game == "Persona Q2":
+            print(f"Decompiling BMD file: {input_file_name} with PQ2 library")
+            subprocess.run([atlus_script_tools_path, input_file_path,
+                            "-Decompiled", "-Library", "PQ2", "-Encoding", "SJ"])
 
     def ASCCompile(input_file_path):
         input_file_name = os.path.basename(input_file_path)
@@ -224,11 +228,16 @@ def run_program():
             output_file_path = os.path.splitext(input_file_path)[0] + '.bmd'
             subprocess.run([atlus_script_tools_path, input_file_path, "-Out",
                             output_file_path, "-Compile", "-OutFormat", "V1BE", "-Library", "P5R", "-Encoding", "P5"])
-        else:
+        elif game == "Persona 5":
             print(f"Compiling BMD file: {input_file_name} with P5 library")
             output_file_path = os.path.splitext(input_file_path)[0] + '.bmd'
             subprocess.run([atlus_script_tools_path, input_file_path, "-Out",
                             output_file_path, "-Compile", "-OutFormat", "V1BE", "-Library", "P5", "-Encoding", "P5"])
+        elif game == "Persona Q2":
+            print(f"Compiling BMD file: {input_file_name} with PQ2 library")
+            output_file_path = os.path.splitext(input_file_path)[0] + '.bmd'
+            subprocess.run([atlus_script_tools_path, input_file_path, "-Out",
+                            output_file_path, "-Compile", "-OutFormat", "V1BE", "-Library", "PQ2", "-Encoding", "SJ"])
 
     # PersonaEditor functions
     def PEExport(input_file_path):
@@ -324,14 +333,14 @@ def run_program():
                     for item in result:
                         line = line.replace(item, "")
                     line = line.replace("[w]", "").replace("[e]", "")
-                    line = line.replace("[w]", "").replace("[e]", "")
                     last_occurrence_index = line.rfind("[n]")
-
-                    if last_occurrence_index != -1:
-                        line = line[:last_occurrence_index] + line[last_occurrence_index:].replace("[n]", "", 1)
-
-                    
-
+                    if game == "Persona Q2":
+                        # Delete all lines after the last occurrence of "[n]"
+                        if last_occurrence_index != -1:
+                            line = line[:last_occurrence_index]
+                    if game == "Persona 5" or game == "Persona 5 Royal":
+                        if last_occurrence_index != -1:
+                            line = line[:last_occurrence_index] + line[last_occurrence_index:].replace("[n]", "", 1)
                     # add the line to the list
                     mod_msgs.append(line)
 
@@ -363,22 +372,41 @@ def run_program():
         mod_msgs_dict = {key.replace(
             '\n', ''): value for key, value in mod_msgs_dict.items()}
         
-        replacement_dict = {
-            'á': '茨',
-            'é': '姻',
-            'í': '胤',
-            'ó': '吋',
-            'ú': '雨',
-            'ñ': '隠',
-            '¿': '夷',
-            '¡': '斡',
-            'Á': '威',
-            'É': '畏',
-            'Í': '緯',
-            'Ó': '遺',
-            'Ú': '郁',
-            'Ñ': '謂'
-        }
+        # change values in the dictionary depending of the game value
+        if game == "Persona 5" or game == "Persona 5 Royal":
+            replacement_dict = {
+                'á': '茨',
+                'é': '姻',
+                'í': '胤',
+                'ó': '吋',
+                'ú': '雨',
+                'ñ': '隠',
+                '¿': '夷',
+                '¡': '斡',
+                'Á': '威',
+                'É': '畏',
+                'Í': '緯',
+                'Ó': '遺',
+                'Ú': '郁',
+                'Ñ': '謂'
+            }
+        elif game == "Persona Q2":
+            replacement_dict = {
+                'á': '係',
+                'é': '契',
+                'í': '慶',
+                'ó': '矩',
+                'ú': '具',
+                'ñ': '狗',
+                '¿': '空',
+                '¡': '緊',
+                'Á': '寓',
+                'É': '掘',
+                'Í': '轡',
+                'Ó': '繰',
+                'Ú': '訓',
+                'Ñ': '粂'
+            }
 
         for key, value in mod_msgs_dict.items():
             if value is not None:
@@ -404,9 +432,11 @@ def run_program():
                     resultado += value[inicio:]  # Agrega el resto del texto después del último intervalo completo
 
                     value = resultado
-
                 # Delete the spaces before and after the [n]
                 value = value.replace(' [n] ', '[n]').replace(' [n]', '[n]').replace('[n] ', '[n]')
+                # La primera letra del mensaje debe ser mayúscula
+                value = value[0].upper() + value[1:]
+                #
                 mod_msgs_dict[key] = value
 
         # Replace the text strings that match the dictionary keys
@@ -513,7 +543,7 @@ def run_program():
                 print(f"Skipping {file} as it doesn't exist")
                 continue
 
-    #delete_files_not_in_list(output_folder, mod_files_list)
+    delete_files_not_in_list(output_folder, mod_files_list)
     delete_files_not_in_list(mod_folder, mod_files_list)
     # delete_files_not_in_list(language_folder, language_files_list)
 
@@ -527,7 +557,7 @@ def run_program():
                     # recursively delete all files and subfolders
                     delete_empty_folders(full_path)
 
-    #delete_empty_folders(output_folder)
+    delete_empty_folders(output_folder)
     delete_empty_folders(mod_folder)
     # delete_empty_folders(language_folder)
 
