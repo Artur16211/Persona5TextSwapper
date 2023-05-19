@@ -13,6 +13,7 @@ import configparser
 
 from tkinter import filedialog
 from deep_translator import GoogleTranslator
+import time
 
 
 class TextRedirector(object):
@@ -280,7 +281,6 @@ def run_program():
         # dirname
         name_file_dirname = os.path.dirname(path_file)
         # get all the .dat files in the folder
-        # get all the .dat files in the folder
         dat_files = []
         for root, dirs, files in os.walk(name_file_dirname):
             for file in files:
@@ -338,6 +338,11 @@ def run_program():
                         # Delete all lines after the last occurrence of "[n]"
                         if last_occurrence_index != -1:
                             line = line[:last_occurrence_index]
+                        # if line no find "[n]", find the last [
+                        else:
+                            last_occurrence_index = line.rfind("[")
+                            if last_occurrence_index != -1:
+                                line = line[:last_occurrence_index]
                     if game == "Persona 5" or game == "Persona 5 Royal":
                         if last_occurrence_index != -1:
                             line = line[:last_occurrence_index] + line[last_occurrence_index:].replace("[n]", "", 1)
@@ -355,8 +360,26 @@ def run_program():
         for msg in mod_msgs:
             # replace the "[n]" with "" to avoid errors
             msgn = msg.replace("[n]", "")
-            mod_msgs_es.append(GoogleTranslator(
-                source='en', target='es').translate(msgn))
+
+            # Intentos de traducción
+            translation_success = False
+            num_attempts = 0
+            max_attempts = 10
+            while not translation_success and num_attempts < max_attempts:
+                try:
+                    mod_msgs_es.append(GoogleTranslator(
+                        source='en', target='es').translate(msgn))
+                    translation_success = True
+                except:
+                    print(
+                        f"Error de traducción. Intento {num_attempts+1} de {max_attempts}")
+                    num_attempts += 1
+                    time.sleep(60)
+            
+            if not translation_success:
+                print(f"Error de traducción. No se pudo traducir el mensaje: {msgn}")
+            # mod_msgs_es.append(GoogleTranslator(
+            #     source='en', target='es').translate(msgn))
 
         # Create a dictionary with the messages in english as keys and the messages in spanish as values
         mod_msgs_dict = dict(zip(mod_msgs, mod_msgs_es))
@@ -480,8 +503,8 @@ def run_program():
                     value = value[0].upper() + value[1:]
                 # Replace the words from word_replacement_dict, without distinction between uppercase and lowercase in the keys
                 for word, replacement in word_replacement_dict.items():
-                    pattern = re.compile(r'\b' + re.escape(word) + r'\b', re.IGNORECASE)
-                    value = re.sub(pattern, replacement, value)
+                    pattern = re.compile(r'(?i)' + re.escape(word))
+                    value = pattern.sub(replacement, value)
                 #
                 mod_msgs_dict[key] = value
 
@@ -529,7 +552,7 @@ def run_program():
     for root, dirs, files in os.walk(mod_folder):
         for name_file in files:
             if name_file.lower().endswith('.msg'):
-                # print(f"Processing file: {root}/{name_file}")
+                print(f"Processing file: {root}/{name_file}")
                 process_msg(os.path.join(root, name_file))
 
     for root, dirs, files in os.walk(output_folder):
