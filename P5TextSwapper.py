@@ -408,6 +408,34 @@ def run_program():
                 'Ñ': '粂'
             }
 
+        # Diccionary of words to replace
+        word_replacement_dict = {
+            'Bromas': 'Joker',
+            'Bromista': 'Joker',
+            'buf矩n': 'Joker',
+            'Guas矩n': 'Joker',
+            'Comod慶n': 'Joker',
+            'joker': 'Joker',
+            'Or係culo': 'Oracle',
+            'carolino': 'Caroline',
+            'justine': 'Justine',
+            'carolina': 'Caroline',	
+            'Isabel': 'Elizabeth',
+            'Cr係neo': 'Skull',
+            'Calavera': 'Skull',
+            'Pantera': 'Panther',
+            'Zorro': 'Fox',
+            'Dama': 'Queen',
+            'Reina': 'Queen',
+            #'Negra': 'Noir',
+            'Cuervo': 'Crow',
+            'Phantom Thieves': 'Ladrones Fantasma',
+            'Shujin High': 'Instituto Shujin',
+            'Reaper': 'Segador',
+            'theReaper': 'el Segador',
+            'Velvet Room': 'Habitaci矩n Terciopelo',
+        }
+
         for key, value in mod_msgs_dict.items():
             if value is not None:
                 for char, replacement in replacement_dict.items():
@@ -421,21 +449,39 @@ def run_program():
                     while inicio + 37 <= len(value):
                         fin = inicio + 37
 
-                        espacio_idx = value.rfind(" ", inicio, fin)  # Encuentra el último espacio en el intervalo actual
+                        espacio_idx = value.rfind(" ", inicio, fin)
+
                         if espacio_idx != -1:
-                            resultado += value[inicio:espacio_idx] + "[n]" + value[espacio_idx:fin]
+                            corchetes_izquierda = "[" in value[max(
+                                inicio, espacio_idx-10):espacio_idx]
+                            corchetes_derecha = "]" in value[espacio_idx:min(
+                                fin, espacio_idx+10)]
+
+                            if not corchetes_izquierda and not corchetes_derecha:
+                                resultado += value[inicio:espacio_idx] + \
+                                    "[n]" + value[espacio_idx:fin]
+                            elif corchetes_izquierda and corchetes_derecha:
+                                resultado += value[inicio:espacio_idx] + \
+                                    "[n][" + value[espacio_idx+1:fin]
+                            else:
+                                resultado += value[inicio:fin]
                         else:
                             resultado += value[inicio:fin]
 
                         inicio = fin
 
-                    resultado += value[inicio:]  # Agrega el resto del texto después del último intervalo completo
+                    resultado += value[inicio:]
 
                     value = resultado
                 # Delete the spaces before and after the [n]
                 value = value.replace(' [n] ', '[n]').replace(' [n]', '[n]').replace('[n] ', '[n]')
                 # La primera letra del mensaje debe ser mayúscula
-                value = value[0].upper() + value[1:]
+                if len(value) > 0:
+                    value = value[0].upper() + value[1:]
+                # Replace the words from word_replacement_dict, without distinction between uppercase and lowercase in the keys
+                for word, replacement in word_replacement_dict.items():
+                    pattern = re.compile(r'\b' + re.escape(word) + r'\b', re.IGNORECASE)
+                    value = re.sub(pattern, replacement, value)
                 #
                 mod_msgs_dict[key] = value
 
