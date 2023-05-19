@@ -238,7 +238,7 @@ def run_program():
             print(f"Compiling BMD file: {input_file_name} with PQ2 library")
             output_file_path = os.path.splitext(input_file_path)[0] + '.bmd'
             subprocess.run([atlus_script_tools_path, input_file_path, "-Out",
-                            output_file_path, "-Compile", "-OutFormat", "V1BE", "-Library", "PQ2", "-Encoding", "SJ"])
+                            output_file_path, "-Compile", "-OutFormat", "V1", "-Library", "PQ2", "-Encoding", "SJ"])
 
     # PersonaEditor functions
     def PEExport(input_file_path):
@@ -476,9 +476,9 @@ def run_program():
 
                         if espacio_idx != -1:
                             corchetes_izquierda = "[" in value[max(
-                                inicio, espacio_idx-10):espacio_idx]
+                                inicio, espacio_idx-16):espacio_idx]
                             corchetes_derecha = "]" in value[espacio_idx:min(
-                                fin, espacio_idx+10)]
+                                fin, espacio_idx+16)]
 
                             if not corchetes_izquierda and not corchetes_derecha:
                                 resultado += value[inicio:espacio_idx] + \
@@ -552,7 +552,7 @@ def run_program():
     for root, dirs, files in os.walk(mod_folder):
         for name_file in files:
             if name_file.lower().endswith('.msg'):
-                print(f"Processing file: {root}/{name_file}")
+                #print(f"Processing file: {root}/{name_file}")
                 process_msg(os.path.join(root, name_file))
 
     for root, dirs, files in os.walk(output_folder):
