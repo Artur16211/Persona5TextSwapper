@@ -396,8 +396,8 @@ def run_program():
             '\n', ''): value for key, value in mod_msgs_dict.items()}
         
         # change values in the dictionary depending of the game value
-        if game == "Persona 5" or game == "Persona 5 Royal":
-            replacement_dict = {
+        # if game == "Persona 5" or game == "Persona 5 Royal":
+        replacement_dict = {
                 'á': '茨',
                 'é': '姻',
                 'í': '胤',
@@ -412,24 +412,24 @@ def run_program():
                 'Ó': '遺',
                 'Ú': '郁',
                 'Ñ': '謂'
-            }
-        elif game == "Persona Q2":
-            replacement_dict = {
-                'á': '係',
-                'é': '契',
-                'í': '慶',
-                'ó': '矩',
-                'ú': '具',
-                'ñ': '狗',
-                '¿': '空',
-                '¡': '緊',
-                'Á': '寓',
-                'É': '掘',
-                'Í': '轡',
-                'Ó': '繰',
-                'Ú': '訓',
-                'Ñ': '粂'
-            }
+        }
+        # elif game == "Persona Q2":
+        #     replacement_dict = {
+        #         'á': '係',
+        #         'é': '契',
+        #         'í': '慶',
+        #         'ó': '矩',
+        #         'ú': '具',
+        #         'ñ': '狗',
+        #         '¿': '空',
+        #         '¡': '緊',
+        #         'Á': '寓',
+        #         'É': '掘',
+        #         'Í': '轡',
+        #         'Ó': '繰',
+        #         'Ú': '訓',
+        #         'Ñ': '粂'
+        #     }
 
         # Diccionary of words to replace
         word_replacement_dict = {
