@@ -343,6 +343,8 @@ def run_program():
                             last_occurrence_index = line.rfind("[")
                             if last_occurrence_index != -1:
                                 line = line[:last_occurrence_index]
+                            # add "# " in start of the line to differentiate the sel lines
+                            line = "# " + line
                     if game == "Persona 5" or game == "Persona 5 Royal":
                         if last_occurrence_index != -1:
                             line = line[:last_occurrence_index] + line[last_occurrence_index:].replace("[n]", "", 1)
@@ -359,7 +361,7 @@ def run_program():
         # Translate the messages to spanish
         for msg in mod_msgs:
             # replace the "[n]" with "" to avoid errors
-            msgn = msg.replace("[n]", "")
+            msgn = msg.replace("[n]", " ")
 
             # Intentos de traducción
             translation_success = False
@@ -367,9 +369,11 @@ def run_program():
             max_attempts = 10
             while not translation_success and num_attempts < max_attempts:
                 try:
+                    #print(f"Traduciendo mensaje: {msgn}")
                     mod_msgs_es.append(GoogleTranslator(
                         source='en', target='es').translate(msgn))
                     translation_success = True
+                    #print(mod_msgs_es)
                 except:
                     print(
                         f"Error de traducción. Intento {num_attempts+1} de {max_attempts}")
@@ -395,8 +399,6 @@ def run_program():
         mod_msgs_dict = {key.replace(
             '\n', ''): value for key, value in mod_msgs_dict.items()}
         
-        # change values in the dictionary depending of the game value
-        # if game == "Persona 5" or game == "Persona 5 Royal":
         replacement_dict = {
                 'á': '茨',
                 'é': '姻',
@@ -413,38 +415,37 @@ def run_program():
                 'Ú': '郁',
                 'Ñ': '謂'
         }
-        # elif game == "Persona Q2":
-        #     replacement_dict = {
-        #         'á': '係',
-        #         'é': '契',
-        #         'í': '慶',
-        #         'ó': '矩',
-        #         'ú': '具',
-        #         'ñ': '狗',
-        #         '¿': '空',
-        #         '¡': '緊',
-        #         'Á': '寓',
-        #         'É': '掘',
-        #         'Í': '轡',
-        #         'Ó': '繰',
-        #         'Ú': '訓',
-        #         'Ñ': '粂'
-        #     }
+        replacement_dict_pq_fix = {
+                '係': '茨',
+                '契': '姻',
+                '慶': '胤',
+                '矩': '吋',
+                '具': '雨',
+                '狗': '隠',
+                '空': '夷',
+                '緊': '斡',
+                '寓': '威',
+                '掘': '畏',
+                '轡': '緯',
+                '繰': '遺',
+                '訓': '郁',
+                '粂': '謂'
+        }
 
         # Diccionary of words to replace
         word_replacement_dict = {
             'Bromas': 'Joker',
             'Bromista': 'Joker',
-            'buf矩n': 'Joker',
-            'Guas矩n': 'Joker',
-            'Comod慶n': 'Joker',
+            'buf吋n': 'Joker',
+            'Guas吋n': 'Joker',
+            'Comod胤n': 'Joker',
             'joker': 'Joker',
-            'Or係culo': 'Oracle',
+            'Or茨culo': 'Oracle',
             'carolino': 'Caroline',
             'justine': 'Justine',
             'carolina': 'Caroline',	
             'Isabel': 'Elizabeth',
-            'Cr係neo': 'Skull',
+            'Cr茨neo': 'Skull',
             'Calavera': 'Skull',
             'Pantera': 'Panther',
             'Zorro': 'Fox',
@@ -456,57 +457,99 @@ def run_program():
             'Shujin High': 'Instituto Shujin',
             'Reaper': 'Segador',
             'theReaper': 'el Segador',
-            'Velvet Room': 'Habitaci矩n Terciopelo',
+            'Velvet Room': 'Habitaci吋n Terciopelo',
+            'Meta-Nav': 'Navegador',
+            'Palace': 'Palacio',
+            # Space fixes ?¿ !¡.
+            '.夷': '. 夷',
+            '.斡': '. 斡',
+            '!斡': '! 斡',
+            '?夷': '? 夷',
         }
 
         for key, value in mod_msgs_dict.items():
             if value is not None:
                 for char, replacement in replacement_dict.items():
                     value = value.replace(char, replacement)
-                # if the value no has [n], replace "" with "[n]" one time if the character count is more than 37
-                # Agregar [n] en intervalos de 37 caracteres completos
-                if len(value) >= 37:
-                    resultado = ""
-                    inicio = 0
+                # if the value no has [n], replace "" with "[n]" one time if the character count is more than 43
+                # Agregar [n] en intervalos de 43 caracteres completos en un maximo de 3 veces
+                # si no empieza por # 
+                if not value.startswith("# "):
+                    if len(value) >= 43:
+                        resultado = ""
+                        inicio = 0
+                        contador_n = 0
 
-                    while inicio + 37 <= len(value):
-                        fin = inicio + 37
+                        while inicio + 43 <= len(value):
+                            fin = inicio + 43
 
-                        espacio_idx = value.rfind(" ", inicio, fin)
+                            espacio_idx = value.rfind(" ", inicio, fin)
 
-                        if espacio_idx != -1:
-                            corchetes_izquierda = "[" in value[max(
-                                inicio, espacio_idx-16):espacio_idx]
-                            corchetes_derecha = "]" in value[espacio_idx:min(
-                                fin, espacio_idx+16)]
+                            if espacio_idx != -1:
+                                corchetes_izquierda = "[" in value[max(
+                                    inicio, espacio_idx - 16):espacio_idx]
+                                corchetes_derecha = "]" in value[espacio_idx:min(
+                                    fin, espacio_idx + 16)]
 
-                            if not corchetes_izquierda and not corchetes_derecha:
-                                resultado += value[inicio:espacio_idx] + \
-                                    "[n]" + value[espacio_idx:fin]
-                            elif corchetes_izquierda and corchetes_derecha:
-                                resultado += value[inicio:espacio_idx] + \
-                                    "[n][" + value[espacio_idx+1:fin]
+                                if not corchetes_izquierda and not corchetes_derecha:
+                                    if contador_n < 3:
+                                        espacio_len = espacio_idx - inicio
+                                        caracteres_restantes = len(value) - fin
+
+                                        # Verificar si quedan al menos 11 caracteres antes de que termine value
+                                        if caracteres_restantes >= 11:
+                                            resultado += value[inicio:espacio_idx] + "[n]" + value[espacio_idx:fin]
+                                            contador_n += 1
+                                        else:
+                                            resultado += value[inicio:fin]
+                                    else:
+                                        resultado += value[inicio:fin]
+                                else:
+                                    resultado += value[inicio:fin]
                             else:
                                 resultado += value[inicio:fin]
-                        else:
-                            resultado += value[inicio:fin]
 
-                        inicio = fin
 
-                    resultado += value[inicio:]
 
-                    value = resultado
+                            inicio = fin
+                        resultado += value[inicio:]
+
+                        value = resultado
                 # Delete the spaces before and after the [n]
                 value = value.replace(' [n] ', '[n]').replace(' [n]', '[n]').replace('[n] ', '[n]')
                 # La primera letra del mensaje debe ser mayúscula
                 if len(value) > 0:
                     value = value[0].upper() + value[1:]
+                # Delete "# "
+                if value.startswith("# "):
+                    value = value[2:]
+                # pq2 fix?
+                for char, replacement in replacement_dict_pq_fix.items():
+                    value = value.replace(char, replacement)
                 # Replace the words from word_replacement_dict, without distinction between uppercase and lowercase in the keys
                 for word, replacement in word_replacement_dict.items():
                     pattern = re.compile(r'(?i)' + re.escape(word))
                     value = pattern.sub(replacement, value)
+                # Replace .夷 with . 夷, .斡 with . 斡, !斡 with ! 斡, ?夷 with ? 夷
+                #value = value.replace('.夷', '. 夷').replace('.斡', '. 斡').replace('!斡', '! 斡').replace('?夷', '? 夷')
                 #
                 mod_msgs_dict[key] = value
+
+        # Crear una lista para almacenar las claves a modificar
+        keys_to_modify = []
+
+        # Identificar las claves que necesitan modificación
+        for key in mod_msgs_dict:
+            if key.startswith("# "):
+                keys_to_modify.append(key)
+
+        # Modificar las claves después de la iteración
+        for key in keys_to_modify:
+            value = mod_msgs_dict[key]
+            new_key = key[2:]
+            del mod_msgs_dict[key]
+            mod_msgs_dict[new_key] = value
+        
 
         # Replace the text strings that match the dictionary keys
         with open(name_file_output, 'r', encoding='utf-8-sig', errors='ignore') as f:
@@ -612,9 +655,8 @@ def run_program():
                 print(f"Skipping {file} as it doesn't exist")
                 continue
 
-    delete_files_not_in_list(output_folder, mod_files_list)
+    #delete_files_not_in_list(output_folder, mod_files_list)
     delete_files_not_in_list(mod_folder, mod_files_list)
-    # delete_files_not_in_list(language_folder, language_files_list)
 
     def delete_empty_folders(path):
         for root, dirs, files in os.walk(path, topdown=False):
@@ -626,9 +668,8 @@ def run_program():
                     # recursively delete all files and subfolders
                     delete_empty_folders(full_path)
 
-    delete_empty_folders(output_folder)
+    #delete_empty_folders(output_folder)
     delete_empty_folders(mod_folder)
-    # delete_empty_folders(language_folder)
 
     print("Done!")
     enable_button()
