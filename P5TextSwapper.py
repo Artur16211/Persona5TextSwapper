@@ -707,7 +707,7 @@ def run_program():
                 print(f"Skipping {file} as it doesn't exist")
                 continue
 
-    #delete_files_not_in_list(output_folder, mod_files_list)
+    delete_files_not_in_list(output_folder, mod_files_list)
     delete_files_not_in_list(mod_folder, mod_files_list)
 
     def delete_empty_folders(path):
@@ -720,7 +720,7 @@ def run_program():
                     # recursively delete all files and subfolders
                     delete_empty_folders(full_path)
 
-    #delete_empty_folders(output_folder)
+    delete_empty_folders(output_folder)
     delete_empty_folders(mod_folder)
 
     print("Done!")
