@@ -10,11 +10,17 @@ import customtkinter
 import sv_ttk
 import sys
 import configparser
+from libretranslatepy import LibreTranslateAPI
 
 from tkinter import filedialog
-from deep_translator import GoogleTranslator
+#from deep_translator import GoogleTranslator
 import time
 
+# URL de tu servidor local
+url = "http://localhost:5000"
+
+# Crear una instancia de la API de LibreTranslate con tu URL personalizada
+api = LibreTranslateAPI(url)
 
 class TextRedirector(object):
     def __init__(self, widget, tag="stdout"):
@@ -356,11 +362,13 @@ def run_program():
                     mod_msgs.append(line)
                 # [msg names
                 elif line.startswith('[msg'):
-                    patron = r"\[([^\[\]]+)\]"
+                    patron = r"\[msg [^\[\]]+ \[([^\[\]]+)\]\]"
                     resultado = re.search(patron, line)
-                    # si el resultado no esta dentro de excluded_keyslist, añadirlo a la lista de nombres
-                    if resultado.group(1) not in excluded_keyslist:
-                        mod_msg_names.append(resultado.group(1))
+                    if resultado:
+                        nombre_remitente = resultado.group(1).strip()
+                        if nombre_remitente not in excluded_keyslist:
+                            mod_msg_names.append(nombre_remitente)
+                    #print(f"Nombres: {mod_msg_names}")
                         
 
         # Copy the .msg file to the output folder
@@ -383,8 +391,7 @@ def run_program():
             while not translation_success and num_attempts < max_attempts:
                 try:
                     #print(f"Traduciendo mensaje: {msgn}")
-                    mod_msgs_es.append(GoogleTranslator(
-                        source='en', target='es').translate(msgn))
+                    mod_msgs_es.append(api.translate(msgn, source='en', target='es'))
                     translation_success = True
                     #print(mod_msgs_es)
                 except:
@@ -407,18 +414,22 @@ def run_program():
             while not translation_success and num_attempts < max_attempts:
                 try:
                     #print(f"Traduciendo mensaje: {msg_name}")
-                    mod_msg_names_es.append(GoogleTranslator(
-                        source='en', target='es').translate(msg_name))
+                    # add temp . to the name to avoid errors
+                    msg_name = msg_name + "."
+                    translation = api.translate(msg_name, source='en', target='es')
+                    # remove the temp .
+                    translation = translation.replace(".", "")
+                    # All first letters in uppercase
+                    translation = translation.title()
+                    mod_msg_names_es.append(translation)
                     translation_success = True
-                    #print(mod_msg_names_es)
+                    #print(translation)
                 except:
                     print(
                         f"Error de traducción. Intento {num_attempts+1} de {max_attempts}")
                     num_attempts += 1
-                    time.sleep(60)
+                    time.sleep(5)
 
-        # todas las primeras letras de las palabras de los nombres de los mensajes en mayúscula
-        mod_msg_names_es = [x.title() for x in mod_msg_names_es]
         #print(mod_msg_names_es)
         # Create a dictionary with the messages in english as keys and the messages in spanish as values
         mod_msgs_dict = dict(zip(mod_msgs, mod_msgs_es))
@@ -500,6 +511,7 @@ def run_program():
             'Velvet Room': 'Habitaci吋n Terciopelo',
             'Meta-Nav': 'Navegador',
             'Palace': 'Palacio',
+            'Baton Pass': 'Relevo',
             # Space fixes ?¿ !¡.
             '.夷': '. 夷',
             '.斡': '. 斡',
@@ -707,7 +719,7 @@ def run_program():
                 print(f"Skipping {file} as it doesn't exist")
                 continue
 
-    delete_files_not_in_list(output_folder, mod_files_list)
+    #delete_files_not_in_list(output_folder, mod_files_list)
     delete_files_not_in_list(mod_folder, mod_files_list)
 
     def delete_empty_folders(path):
@@ -720,7 +732,7 @@ def run_program():
                     # recursively delete all files and subfolders
                     delete_empty_folders(full_path)
 
-    delete_empty_folders(output_folder)
+    #delete_empty_folders(output_folder)
     delete_empty_folders(mod_folder)
 
     print("Done!")
