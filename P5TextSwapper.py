@@ -302,11 +302,15 @@ def run_program():
     # replace
     def process_msg(name_file):
 
+        excluded_keyslist = ['Joker', 'Akechi', 'Morgana', 'Ryuji', 'Sakamoto', 'Ann', 'Takamaki', 'Yusuke', 'Kitagawa', 'Makoto', 'Niijima', 'Futaba', 'Sakura', 'Haru', 'Okumura', 'Yukiko', 'Amagi', 'Chie', 'Satonaka', 'Kanji', 'Tatsumi', 'Naoto', 'Shirogane', 'Teddie', 'Yosuke', 'Hanamura', 'Aigis', 'Akihiko', 'Sanada', 'Mitsuru', 'Kirijo', 'Junpei', 'Iori', 'Labrys', 'Shinjiro', 'Aragaki', 'Fuuka', 'Yamagishi', 'Koromaru', 'Ken', 'Amada', 'Rise', 'Kujikawa', 'Yu', 'Narukami', 'Yukari', 'Takeba', 'Makoto', 'Yuki', 'Theodore', 'Elizabeth', 'Marie', 'Margaret', 'Hikari', 'Nagi', 'Nikolai', 'Kamoshidaman', 'Asterius', 'Erlkonig', 'King Frost', 'Queen of Hearts', 'Demiurge', 'Doppleganger', 'Ardha', 'D\'Artagnan', 'Adam Kadmon', 'Kali', 'Angels', 'Archangels', 'Dominion', 'Throne']
+
         # get the name of the file without the extension and add .msg
         name_file_msg = os.path.splitext(name_file)[0] + '.msg'
 
         # make a list with the msg
         mod_msgs = []
+        # list with names
+        mod_msg_names = []
 
         match = r"\[[^\[\]]*\]|\[[^\[]*[^\s\[\]]\]"
 
@@ -350,6 +354,14 @@ def run_program():
                             line = line[:last_occurrence_index] + line[last_occurrence_index:].replace("[n]", "", 1)
                     # add the line to the list
                     mod_msgs.append(line)
+                # [msg names
+                elif line.startswith('[msg'):
+                    patron = r"\[([^\[\]]+)\]"
+                    resultado = re.search(patron, line)
+                    # si el resultado no esta dentro de excluded_keyslist, añadirlo a la lista de nombres
+                    if resultado.group(1) not in excluded_keyslist:
+                        mod_msg_names.append(resultado.group(1))
+                        
 
         # Copy the .msg file to the output folder
         name_file_output = name_file_msg.replace(mod_folder, output_folder)
@@ -358,6 +370,7 @@ def run_program():
 
         # Make a list with the messages in spanish
         mod_msgs_es = []
+        mod_msg_names_es = []
         # Translate the messages to spanish
         for msg in mod_msgs:
             # replace the "[n]" with "" to avoid errors
@@ -384,9 +397,34 @@ def run_program():
                 print(f"Error de traducción. No se pudo traducir el mensaje: {msgn}")
             # mod_msgs_es.append(GoogleTranslator(
             #     source='en', target='es').translate(msgn))
+        for msg_name in mod_msg_names:
+            # replace Caroline and Justine por Caroline y Justine
+            msg_name = msg_name.replace("Caroline and Justine", "Caroline y Justine")
+            # intentos de traducción
+            translation_success = False
+            num_attempts = 0
+            max_attempts = 10
+            while not translation_success and num_attempts < max_attempts:
+                try:
+                    #print(f"Traduciendo mensaje: {msg_name}")
+                    mod_msg_names_es.append(GoogleTranslator(
+                        source='en', target='es').translate(msg_name))
+                    translation_success = True
+                    #print(mod_msg_names_es)
+                except:
+                    print(
+                        f"Error de traducción. Intento {num_attempts+1} de {max_attempts}")
+                    num_attempts += 1
+                    time.sleep(60)
 
+        # todas las primeras letras de las palabras de los nombres de los mensajes en mayúscula
+        mod_msg_names_es = [x.title() for x in mod_msg_names_es]
+        #print(mod_msg_names_es)
         # Create a dictionary with the messages in english as keys and the messages in spanish as values
         mod_msgs_dict = dict(zip(mod_msgs, mod_msgs_es))
+
+        # Create a dictionary with the messages names in english as keys and the messages names in spanish as values
+        mod_msg_names_dict = dict(zip(mod_msg_names, mod_msg_names_es))
 
         # print the dictionary
         # for key, value in mod_msgs_dict.items():
@@ -398,6 +436,8 @@ def run_program():
         # Delete the \n from the key
         mod_msgs_dict = {key.replace(
             '\n', ''): value for key, value in mod_msgs_dict.items()}
+        #mod_msg_names_dict = {key.replace(
+            #'\n', ''): value for key, value in mod_msg_names_dict.items()}
         
         replacement_dict = {
                 'á': '茨',
@@ -549,13 +589,25 @@ def run_program():
             new_key = key[2:]
             del mod_msgs_dict[key]
             mod_msgs_dict[new_key] = value
-        
+
+        # Remplazar caracteres del diccionario de nombres con las listas de caracteres replacement_dict y replacement_dict_pq_fix
+        for key, value in mod_msg_names_dict.items():
+            if value is not None:
+                for char, replacement in replacement_dict.items():
+                    value = value.replace(char, replacement)
+                for char, replacement in replacement_dict_pq_fix.items():
+                    value = value.replace(char, replacement)
+                mod_msg_names_dict[key] = value
 
         # Replace the text strings that match the dictionary keys
         with open(name_file_output, 'r', encoding='utf-8-sig', errors='ignore') as f:
             filedata = f.read()
 
         for key, value in mod_msgs_dict.items():
+            if value is not None:
+                filedata = filedata.replace(key, value)
+
+        for key, value in mod_msg_names_dict.items():
             if value is not None:
                 filedata = filedata.replace(key, value)
 
