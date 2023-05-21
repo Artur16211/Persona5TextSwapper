@@ -194,11 +194,11 @@ def run_program():
     mod_files_list_updated = [x.replace(mod_folder, '')
                               for x in mod_files_list_updated]
 
-    for file in mod_files_list_updated:
-        full_path = mod_folder + file
-        if not file.lower().endswith((".bf", ".bmd")):
+    #for file in mod_files_list_updated:
+        #full_path = mod_folder + file
+        #if not file.lower().endswith((".bf", ".bmd")):
             # print(f"El archivo {file} no es .bf o .bmd, se eliminará.")
-            os.remove(full_path)
+            #os.remove(full_path)
 
     # Path to the dependencies
     personaeditor_path = os.path.join(
@@ -336,7 +336,7 @@ def run_program():
                             break
 
                         # Check if the next character is a space or a bracket
-                        if len(line[position:].strip()) == 0 or line[position:position+5] == "[var " or line[position:position+7] == "[f 4 1]" or line[position:position+7] == "[f 4 2]" or line[position:position+5] == "[clr " or line[position] != "[":
+                        if len(line[position:].strip()) == 0 or line[position:position+5] == "[var " or line[position:position+7] == "[f 4 1]" or line[position:position+7] == "[f 4 2]" or line[position:position+5] == "[clr " or line[position:position+5] == "[Navi" or line[position] != "[":
                             break
 
                     # Remove the text between brackets and the characters "[w]" and "[e]"
@@ -359,6 +359,7 @@ def run_program():
                         if last_occurrence_index != -1:
                             line = line[:last_occurrence_index] + line[last_occurrence_index:].replace("[n]", "", 1)
                     # add the line to the list
+                    #print(f"Line: {line}")
                     mod_msgs.append(line)
                 # [msg names
                 elif line.startswith('[msg'):
@@ -379,21 +380,46 @@ def run_program():
         # Make a list with the messages in spanish
         mod_msgs_es = []
         mod_msg_names_es = []
+        def replace_brackets(texto):
+            # Define la expresión regular para encontrar "[A-Z]"
+                resultado = ""
+                indice = 0
+                while indice < len(texto):
+                    if texto[indice] == '[' and indice + 1 < len(texto) and texto[indice + 1].isupper():
+                        resultado += '('
+                        # get the index of the next ']' after the current '['
+                        indice2 = texto.find(']', indice)
+                        # replace the ']' with ')'
+                        resultado += texto[indice + 1:indice2] + ')'
+                        indice = indice2
+                    else:
+                        resultado += texto[indice]
+                    indice += 1
+                return resultado
+
         # Translate the messages to spanish
         for msg in mod_msgs:
             # replace the "[n]" with "" to avoid errors
             msgn = msg.replace("[n]", " ")
-
             # Intentos de traducción
             translation_success = False
             num_attempts = 0
             max_attempts = 10
             while not translation_success and num_attempts < max_attempts:
                 try:
-                    #print(f"Traduciendo mensaje: {msgn}")
-                    mod_msgs_es.append(api.translate(msgn, source='en', target='es'))
-                    translation_success = True
-                    #print(mod_msgs_es)
+                    if not len(msgn) == 1:
+                        #print(f"Traduciendo mensaje: {msgn}")
+                        #
+                        #msgn = msgn.replace("[", "(").replace("]", ")")
+                        # if the "["" does next a mayuscula, replace with "("" and the next "]" with ")"
+                        msgn = replace_brackets(msgn)
+                        #
+                        mod_msgs_es.append(api.translate(msgn, source='en', target='es'))
+                        translation_success = True
+                        #print(mod_msgs_es)
+                    else:
+                        mod_msgs_es.append(msgn,)
+                        translation_success = True
                 except:
                     print(
                         f"Error de traducción. Intento {num_attempts+1} de {max_attempts}")
@@ -523,17 +549,17 @@ def run_program():
             if value is not None:
                 for char, replacement in replacement_dict.items():
                     value = value.replace(char, replacement)
-                # if the value no has [n], replace "" with "[n]" one time if the character count is more than 43
-                # Agregar [n] en intervalos de 43 caracteres completos en un maximo de 3 veces
+                # if the value no has [n], replace "" with "[n]" one time if the character count is more than 40
+                # Agregar [n] en intervalos de 40 caracteres completos en un maximo de 3 veces
                 # si no empieza por # 
                 if not value.startswith("# "):
-                    if len(value) >= 43:
+                    if len(value) >= 40:
                         resultado = ""
                         inicio = 0
                         contador_n = 0
 
-                        while inicio + 43 <= len(value):
-                            fin = inicio + 43
+                        while inicio + 40 <= len(value):
+                            fin = inicio + 40
 
                             espacio_idx = value.rfind(" ", inicio, fin)
 
@@ -633,10 +659,10 @@ def run_program():
         os.rename(name_file_output + ".tmp", name_file_output)
 
     # Delete all files that are not .bin, .bmd, .pak or .bf
-    for folder in [mod_folder]:
-        for file in os.scandir(folder):
-            if file.is_file() and not file.name.lower().endswith((".bin", ".bmd", ".pak", ".bf")):
-                os.remove(file.path)
+    #for folder in [mod_folder]:
+        #for file in os.scandir(folder):
+            #if file.is_file() and not file.name.lower().endswith((".bin", ".bmd", ".pak", ".bf")):
+                #os.remove(file.path)
 
     # Check all types of files in the "Mod" folder
     # Read all files in the root and its subfolders
