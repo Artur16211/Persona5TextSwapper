@@ -194,11 +194,11 @@ def run_program():
     mod_files_list_updated = [x.replace(mod_folder, '')
                               for x in mod_files_list_updated]
 
-    #for file in mod_files_list_updated:
-        #full_path = mod_folder + file
-        #if not file.lower().endswith((".bf", ".bmd")):
-            # print(f"El archivo {file} no es .bf o .bmd, se eliminará.")
-            #os.remove(full_path)
+    for file in mod_files_list_updated:
+        full_path = mod_folder + file
+        if not file.lower().endswith((".bf", ".bmd")):
+            print(f"El archivo {file} no es .bf o .bmd, se eliminará.")
+            os.remove(full_path)
 
     # Path to the dependencies
     personaeditor_path = os.path.join(
@@ -308,10 +308,37 @@ def run_program():
     # replace
     def process_msg(name_file):
 
+        def replace_brackets(texto):
+            # Define la expresión regular para encontrar "[A-Z]"
+                resultado = ""
+                indice = 0
+                while indice < len(texto):
+                    if texto[indice] == '[' and indice + 1 < len(texto) and texto[indice + 1].isupper():
+                        resultado += '('
+                        # get the index of the next ']' after the current '['
+                        indice2 = texto.find(']', indice)
+                        # replace the ']' with ')'
+                        resultado += texto[indice + 1:indice2] + ')'
+                        indice = indice2
+                    else:
+                        resultado += texto[indice]
+                    indice += 1
+                return resultado
+
         excluded_keyslist = ['Joker', 'Akechi', 'Morgana', 'Ryuji', 'Sakamoto', 'Ann', 'Takamaki', 'Yusuke', 'Kitagawa', 'Makoto', 'Niijima', 'Futaba', 'Sakura', 'Haru', 'Okumura', 'Yukiko', 'Amagi', 'Chie', 'Satonaka', 'Kanji', 'Tatsumi', 'Naoto', 'Shirogane', 'Teddie', 'Yosuke', 'Hanamura', 'Aigis', 'Akihiko', 'Sanada', 'Mitsuru', 'Kirijo', 'Junpei', 'Iori', 'Labrys', 'Shinjiro', 'Aragaki', 'Fuuka', 'Yamagishi', 'Koromaru', 'Ken', 'Amada', 'Rise', 'Kujikawa', 'Yu', 'Narukami', 'Yukari', 'Takeba', 'Makoto', 'Yuki', 'Theodore', 'Elizabeth', 'Marie', 'Margaret', 'Hikari', 'Nagi', 'Nikolai', 'Kamoshidaman', 'Asterius', 'Erlkonig', 'King Frost', 'Queen of Hearts', 'Demiurge', 'Doppleganger', 'Ardha', 'D\'Artagnan', 'Adam Kadmon', 'Kali', 'Angels', 'Archangels', 'Dominion', 'Throne']
 
         # get the name of the file without the extension and add .msg
         name_file_msg = os.path.splitext(name_file)[0] + '.msg'
+
+        # Read the lines of the mod .msg file and replace line = replace_brackets(line) when not starting with [msg or empty line or //
+        with open(name_file_msg, 'r', encoding='utf-8-sig', errors='ignore') as f:
+            linesbfix = f.readlines()
+
+        with open(name_file_msg, 'w', encoding='utf-8-sig', errors='ignore') as f:
+            for line in linesbfix:
+                if not line.startswith('[msg') and not line.startswith('//') and not line.strip() == '' and not line.startswith('[sel'):
+                    line = replace_brackets(line)
+                f.write(line)
 
         # make a list with the msg
         mod_msgs = []
@@ -319,6 +346,7 @@ def run_program():
         mod_msg_names = []
 
         match = r"\[[^\[\]]*\]|\[[^\[]*[^\s\[\]]\]"
+        
 
         # Read the lines of the mod .msg file when not starting with [msg or empty line or // and create a list with the lines
         with open(name_file_msg, 'r', encoding='utf-8-sig', errors='ignore') as f:
@@ -380,22 +408,6 @@ def run_program():
         # Make a list with the messages in spanish
         mod_msgs_es = []
         mod_msg_names_es = []
-        def replace_brackets(texto):
-            # Define la expresión regular para encontrar "[A-Z]"
-                resultado = ""
-                indice = 0
-                while indice < len(texto):
-                    if texto[indice] == '[' and indice + 1 < len(texto) and texto[indice + 1].isupper():
-                        resultado += '('
-                        # get the index of the next ']' after the current '['
-                        indice2 = texto.find(']', indice)
-                        # replace the ']' with ')'
-                        resultado += texto[indice + 1:indice2] + ')'
-                        indice = indice2
-                    else:
-                        resultado += texto[indice]
-                    indice += 1
-                return resultado
 
         # Translate the messages to spanish
         for msg in mod_msgs:
@@ -659,10 +671,10 @@ def run_program():
         os.rename(name_file_output + ".tmp", name_file_output)
 
     # Delete all files that are not .bin, .bmd, .pak or .bf
-    #for folder in [mod_folder]:
-        #for file in os.scandir(folder):
-            #if file.is_file() and not file.name.lower().endswith((".bin", ".bmd", ".pak", ".bf")):
-                #os.remove(file.path)
+    for folder in [mod_folder]:
+        for file in os.scandir(folder):
+            if file.is_file() and not file.name.lower().endswith((".bin", ".bmd", ".pak", ".bf")):
+                os.remove(file.path)
 
     # Check all types of files in the "Mod" folder
     # Read all files in the root and its subfolders
@@ -745,7 +757,7 @@ def run_program():
                 print(f"Skipping {file} as it doesn't exist")
                 continue
 
-    #delete_files_not_in_list(output_folder, mod_files_list)
+    delete_files_not_in_list(output_folder, mod_files_list)
     delete_files_not_in_list(mod_folder, mod_files_list)
 
     def delete_empty_folders(path):
@@ -758,7 +770,7 @@ def run_program():
                     # recursively delete all files and subfolders
                     delete_empty_folders(full_path)
 
-    #delete_empty_folders(output_folder)
+    delete_empty_folders(output_folder)
     delete_empty_folders(mod_folder)
 
     print("Done!")
