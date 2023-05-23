@@ -197,7 +197,7 @@ def run_program():
     for file in mod_files_list_updated:
         full_path = mod_folder + file
         if not file.lower().endswith((".bf", ".bmd")):
-            print(f"El archivo {file} no es .bf o .bmd, se eliminará.")
+            #print(f"El archivo {file} no es .bf o .bmd, se eliminará.")
             os.remove(full_path)
 
     # Path to the dependencies
@@ -538,7 +538,9 @@ def run_program():
             'Calavera': 'Skull',
             'Pantera': 'Panther',
             'Zorro': 'Fox',
-            'Dama': 'Queen',
+            #'Dama': 'Queen',
+            'theater': 'Cine',
+            'teatro': 'Cine',
             'Reina': 'Queen',
             #'Negra': 'Noir',
             'Cuervo': 'Crow',
@@ -555,6 +557,30 @@ def run_program():
             '.斡': '. 斡',
             '!斡': '! 斡',
             '?夷': '? 夷',
+            'Main Persona': 'Persona Principal',
+            'X Button': 'Bot吋n X',
+            'Y Button': 'Bot吋n Y',
+            'L Button': 'Bot吋n L',
+            'R Button': 'Bot吋n R',
+            'A Button': 'Bot吋n A',
+            'B Button': 'Bot吋n B',
+            'RISKY': 'Despiadado',
+            'SAFETY': 'Seguro',
+            'Persona Fusion': 'Fusi吋n de Personas',
+            #'HP': 'PS',
+            #'SP': 'PE',
+            'All-out Attack': 'Ataque Combinado',
+            'Contin具e': 'Continuar',
+            'Retreat': 'Retirada',
+            '3 vueltas': '3 turnos',
+            'Levante la resistencia': 'Aumenta la resistencia',
+            'Levante la defensa': 'Aumenta la defensa',
+            'Levante la evasi吋n': 'Aumenta la evasi吋n',
+            'Navi: Battle': 'Navi: Batalla',
+            'Yasogami-High': 'Instituto Yasogami',
+            'Yasogami High': 'Instituto Yasogami',
+            'Gekkoukan High': 'Instituto Gekkoukan',
+            'Kosei High': 'Instituto Kosei',
         }
 
         for key, value in mod_msgs_dict.items():
@@ -757,7 +783,7 @@ def run_program():
                 print(f"Skipping {file} as it doesn't exist")
                 continue
 
-    delete_files_not_in_list(output_folder, mod_files_list)
+    #delete_files_not_in_list(output_folder, mod_files_list)
     delete_files_not_in_list(mod_folder, mod_files_list)
 
     def delete_empty_folders(path):
