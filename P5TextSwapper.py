@@ -783,7 +783,7 @@ def run_program():
                 print(f"Skipping {file} as it doesn't exist")
                 continue
 
-    #delete_files_not_in_list(output_folder, mod_files_list)
+    delete_files_not_in_list(output_folder, mod_files_list)
     delete_files_not_in_list(mod_folder, mod_files_list)
 
     def delete_empty_folders(path):
