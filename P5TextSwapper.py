@@ -102,7 +102,7 @@ def on_select(event):
 
 
 # Options for the dropdown
-options = ["Persona 5 Royal", "Persona 5"]
+options = ["Persona 5 Royal", "Persona 5", "Persona Q2"]
 
 # Make the dropdown
 dropdown = ttk.Combobox(root, values=options)
@@ -128,7 +128,7 @@ dropdown.grid(row=3, column=0, padx=10, pady=10)
 
 
 # specify the size of the window
-root.geometry("680x600")
+root.geometry("860x600")
 
 # disable resizing the GUI
 root.resizable(False, False)
@@ -210,6 +210,11 @@ def run_program():
         if file not in language_files_list:
             # New path for the file
             new_path = language_folder + file
+            new_path = new_path.replace("\\", "/")
+
+            # Create the directory if it doesn't exist
+            os.makedirs(os.path.dirname(new_path), exist_ok=True)
+
             print("Copying " + file + " to " + new_path)
             shutil.copy(full_path, new_path)
 
@@ -267,10 +272,14 @@ def run_program():
             print(f"Decompiling BMD file: {input_file_name} with P5R library")
             subprocess.run([atlus_script_tools_path, input_file_path,
                             "-Decompiled", "-Library", "P5R", "-Encoding", "P5"])
-        else:
+        elif game == "Persona 5":
             print(f"Decompiling BMD file: {input_file_name} with P5 library")
             subprocess.run([atlus_script_tools_path, input_file_path,
                             "-Decompiled", "-Library", "P5", "-Encoding", "P5"])
+        elif game == "Persona Q2":
+            print(f"Decompiling BMD file: {input_file_name} with PQ2 library")
+            subprocess.run([atlus_script_tools_path, input_file_path,
+                            "-Decompiled", "-Library", "PQ2", "-Encoding", "SJ"])
 
     def ASCCompile(input_file_path):
         input_file_name = os.path.basename(input_file_path)
@@ -279,11 +288,16 @@ def run_program():
             output_file_path = os.path.splitext(input_file_path)[0] + '.bmd'
             subprocess.run([atlus_script_tools_path, input_file_path, "-Out",
                             output_file_path, "-Compile", "-OutFormat", "V1BE", "-Library", "P5R", "-Encoding", "P5"])
-        else:
+        elif game == "Persona 5":
             print(f"Compiling BMD file: {input_file_name} with P5 library")
             output_file_path = os.path.splitext(input_file_path)[0] + '.bmd'
             subprocess.run([atlus_script_tools_path, input_file_path, "-Out",
                             output_file_path, "-Compile", "-OutFormat", "V1BE", "-Library", "P5", "-Encoding", "P5"])
+        elif game == "Persona Q2":
+            print(f"Compiling BMD file: {input_file_name} with PQ2 library")
+            output_file_path = os.path.splitext(input_file_path)[0] + '.bmd'
+            subprocess.run([atlus_script_tools_path, input_file_path, "-Out",
+                            output_file_path, "-Compile", "-OutFormat", "V1", "-Library", "PQ2", "-Encoding", "SJ"])
 
     # PersonaEditor functions
     def PEExport(input_file_path):
@@ -383,7 +397,7 @@ def run_program():
         excluded_keyslist = ['Ryuji', 'Morgana', 'Yusuke', 'Ann', 'Makoto', 'Futaba', 'Haru', 'Goro', 'Akechi', 'Kasumi', 'Yoshisawa', 'Kamoshida', 'Madarame', 'Kaneshiro',    'Okumura', 'Shido', 'Yaldabaoth', 'Sojiro', 'Sae', 'Nijima', 'Igor', 'Caroline', 'Justine', 'Tae', 'Takemi',
                              'Munehisa', 'Chihaya', 'Mifune', 'Yuki', 'Mishima', 'Ohya', 'Kawakami', 'Toranosuke', 'Shinya', 'Oya', 'Ichiko', 'Sadayo', 'Hifumi', 'Togo', 'Sugimura', 'Kawanabe', 'Iwai', 'Shiho', 'Wakaba', 'Maruki', 'Jose', 'Takuto', 'Joker', 'Kitagawa', 'Niijima', 'Sakamoto', 'Takamaki', 'Sakura', 'Sumire']
 
-        with open(name_file_msg_lang, 'r', encoding='utf-8-sig', errors='ignore') as f:
+        with open(name_file_msg_lang, 'r', encoding='shift_jis', errors='ignore') as f:
             for line in f:
                 if line.startswith('[msg'):
                     # Remove everything before the second space and the [ and ]
@@ -399,7 +413,7 @@ def run_program():
                                 f"Warning: Line '{line.strip()}' in {name_file_msg_lang} is not in the expected format.")
 
         # Read the lines of the mod .msg file and save the lines that start with '[msg'
-        with open(name_file_msg_mod, 'r', encoding='utf-8-sig', errors='ignore') as f:
+        with open(name_file_msg_mod, 'r', encoding='shift_jis', errors='ignore') as f:
             for line in f:
                 if line.startswith('[msg'):
                     # Remove everything before the second space and the [ and ]
@@ -425,7 +439,7 @@ def run_program():
         match = r"\[[^\[\]]*\]|\[[^\[]*[^\s\[\]]\]"
 
         # Read the lines of the language .msg file and save the lines that start with '[msg'
-        with open(name_file_msg_lang, 'r', encoding='utf-8-sig', errors='ignore') as f:
+        with open(name_file_msg_lang, 'r', encoding='shift_jis', errors='ignore') as f:
             for line in f:
                 if line.startswith('[msg'):
                     value = []
@@ -451,10 +465,16 @@ def run_program():
                                 next_line = next_line.replace(item, "")
                             next_line = next_line.replace("[w]", "").replace(
                                 "[e]", "")
+                            for item in result:
+                                next_line = next_line.replace("縲縲", "").replace(
+                                    "縲縲", "").replace("　　", "")
+                                next_line = re.sub(
+                                    r'\[n\]\[f 3 1 1 0 0.*?\]', '', next_line)
                         # Fix compilation error, replace "/" with "l"
                             value.append(next_line)
                         else:
                             break
+                    # print(f"La nueva linea language es: {value}")
                     lang_msg_lines[line.strip()] = "$f$".join(value)
                 if line.startswith('[sel'):
                     value = []
@@ -469,7 +489,7 @@ def run_program():
         mod_msg_lines = {}
 
         # Open mod file and process each line
-        with open(name_file_msg_mod, 'r', encoding='utf-8-sig', errors='ignore') as f:
+        with open(name_file_msg_mod, 'r', encoding='shift_jis', errors='ignore') as f:
             for line in f:
                 if line.startswith('[msg'):
                     value = []
@@ -496,9 +516,17 @@ def run_program():
                             next_line = next_line.replace("[w]", "").replace(
                                 "[e]", "")
                         # Fix compilation error, replace "/" with "l"
+                            # value.append(next_line)
+                            # If exist a [ y ] starts with [f 3 1 1 0 0, delete the [ and the ] and the characters between them
+                            for item in result:
+                                next_line = next_line.replace("縲縲", "").replace(
+                                    "縲縲", "").replace("　　", "")
+                                next_line = re.sub(
+                                    r'\[n\]\[f 3 1 1 0 0.*?\]', '', next_line)
                             value.append(next_line)
                         else:
                             break
+                    print(f"La nueva linea mod es: {value}")
                     mod_msg_lines[line.strip()] = "$f$".join(value)
                 if line.startswith('[sel'):
                     value = []
@@ -594,37 +622,38 @@ def run_program():
 
         # Replace the lines of the name_file.msg file in the output_folder folder that match key with the value of msg_matches[key]
         if os.path.isfile(name_file_msg_mod_msg2) and name_file_msg_mod_msg2.lower().endswith('.msg'):
-            with open(name_file_msg_mod_msg2, 'r', encoding='utf-8-sig', errors='ignore') as f:
+            with open(name_file_msg_mod_msg2, 'r', encoding='shift_jis', errors='ignore') as f:
                 content = f.read()
             for key, value in msg_matches.items():
                 content, num_replaced = content.replace(
                     key, value), content.count(key)
                 num_lines_replaced += num_replaced
-            with open(name_file_msg_mod_msg2, 'w', encoding='utf-8-sig', errors='ignore') as f:
+                # print(f"Remplazando {key} por {value}")
+            with open(name_file_msg_mod_msg2, 'w', encoding='shift_jis', errors='ignore') as f:
                 f.write(content)
         # Replace "/" with "l"
         if os.path.isfile(name_file_msg_mod_msg2) and name_file_msg_mod_msg2.lower().endswith('.msg'):
-            with open(name_file_msg_mod_msg2, 'r', encoding='utf-8-sig', errors='ignore') as f:
+            with open(name_file_msg_mod_msg2, 'r', encoding='shift_jis', errors='ignore') as f:
                 content = f.readlines()
-            with open(name_file_msg_mod_msg2, 'w', encoding='utf-8-sig', errors='ignore') as f:
+            with open(name_file_msg_mod_msg2, 'w', encoding='shift_jis', errors='ignore') as f:
                 for line in content:
                     # check if the line not start with [msg, [sel, // or is empty
                     if not line.startswith('[msg') and not line.startswith('//') and not line.startswith('[sel') and line.strip():
                         line = line.replace('/', 'l')
                     f.write(line)
         # Add [f 0 5 -258] at the start of all lines that do not start with [msg, [sel or are empty
-        with open(name_file_msg_mod_msg2, 'r', encoding='utf-8-sig', errors='ignore') as f:
-            content = f.readlines()
-        with open(name_file_msg_mod_msg2, 'w', encoding='utf-8-sig', errors='ignore') as f:
-            for line in content:
-                if line.startswith('[msg') or line.startswith('//') or line.startswith('[sel') or not line.strip():
-                    f.write(line)
-                else:
-                    f.write('[f 0 5 -258]' + line)
+        # with open(name_file_msg_mod_msg2, 'r', encoding='shift_jis', errors='ignore') as f:
+        #     content = f.readlines()
+        # with open(name_file_msg_mod_msg2, 'w', encoding='shift_jis', errors='ignore') as f:
+        #     for line in content:
+        #         if line.startswith('[msg') or line.startswith('//') or line.startswith('[sel') or not line.strip():
+        #             f.write(line)
+        #         else:
+        #             f.write('[f 0 5 -258]' + line)
         # Replace the lines with the dic_names dictionary, search the keys and replace them with their values in the name_file_with_file file
-        with open(name_file_msg_mod_msg2, 'r', encoding='utf-8-sig', errors='ignore') as f:
+        with open(name_file_msg_mod_msg2, 'r', encoding='shift_jis', errors='ignore') as f:
             content = f.readlines()
-        with open(name_file_msg_mod_msg2, 'w', encoding='utf-8-sig', errors='ignore') as f:
+        with open(name_file_msg_mod_msg2, 'w', encoding='shift_jis', errors='ignore') as f:
             for line in content:
                 if line.startswith("[msg"):
                     for key, value in dic_names.items():
@@ -744,9 +773,9 @@ def run_program():
                 print(f"Skipping {file} as it doesn't exist")
                 continue
 
-    delete_files_not_in_list(output_folder, mod_files_list)
-    delete_files_not_in_list(mod_folder, mod_files_list)
-    delete_files_not_in_list(language_folder, language_files_list)
+    # delete_files_not_in_list(output_folder, mod_files_list)
+   # delete_files_not_in_list(mod_folder, mod_files_list)
+   # delete_files_not_in_list(language_folder, language_files_list)
 
     def delete_empty_folders(path):
         for root, dirs, files in os.walk(path, topdown=False):
@@ -759,8 +788,8 @@ def run_program():
                     delete_empty_folders(full_path)
 
     delete_empty_folders(output_folder)
-    delete_empty_folders(mod_folder)
-    delete_empty_folders(language_folder)
+    # delete_empty_folders(mod_folder)
+    # delete_empty_folders(language_folder)
 
     print("Done!")
     enable_button()
