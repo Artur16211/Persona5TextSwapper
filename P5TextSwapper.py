@@ -8,27 +8,10 @@ from tkinter import ttk
 from tkinter import messagebox
 import customtkinter
 import sv_ttk
-import sys
 import configparser
+import logging
 
 from tkinter import filedialog
-
-
-class TextRedirector(object):
-    def __init__(self, widget, tag="stdout"):
-        self.widget = widget
-        self.tag = tag
-
-    def write(self, str):
-        self.widget.config(state=tk.NORMAL)
-        self.widget.insert(tk.END, str, (self.tag,))
-        self.widget.see(tk.END)
-        self.widget.config(state=tk.DISABLED)
-        self.widget.update()
-        root.update()
-
-    def flush(self):
-        pass
 
 
 # Make a config parser
@@ -49,6 +32,9 @@ mod_folder = config.get('Folders', 'mod_folder', fallback='')
 language_folder = config.get('Folders', 'language_folder', fallback='')
 output_folder = config.get('Folders', 'output_folder', fallback='')
 game = config.get('Folders', 'game', fallback='Persona 5 Royal')
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 root = customtkinter.CTk()
 
@@ -87,9 +73,6 @@ scrollbar.grid(row=5, column=4, sticky='ns')
 log_box.config(state=tk.DISABLED, yscrollcommand=scrollbar.set)
 
 
-sys.stdout = TextRedirector(log_box, "stdout")
-
-
 def on_select(event):
     # Make the variable global so it can be used
     global game
@@ -98,11 +81,23 @@ def on_select(event):
     log_box.config(state=tk.NORMAL)
     log_box.delete('1.0', tk.END)
     log_box.config(state=tk.DISABLED)
-    print(f"Game: {game}")
+    logging.info(f"Game: {game}")\
 
+
+
+def log_to_box(message):
+    # Escribir en el Text widget
+    log_box.config(state=tk.NORMAL)
+    log_box.insert(tk.END, message + '\n', ('stdout',))
+    log_box.see(tk.END)
+    log_box.config(state=tk.DISABLED)
+    root.update()
+
+
+logging.info = log_to_box
 
 # Options for the dropdown
-options = ["Persona 5 Royal", "Persona 5"]
+options = ["Persona 5 Royal", "Persona 5", "Persona 4 Golden"]
 
 # Make the dropdown
 dropdown = ttk.Combobox(root, values=options)
@@ -128,7 +123,7 @@ dropdown.grid(row=3, column=0, padx=10, pady=10)
 
 
 # specify the size of the window
-root.geometry("680x600")
+root.geometry("900x600")
 
 # disable resizing the GUI
 root.resizable(False, False)
@@ -194,7 +189,8 @@ def run_program():
     language_files_list = [x.replace(language_folder, '')
                            for x in language_files_list]
 
-    print("Deleting files from language_folder that don't exist in mod_folder")
+    logging.info(
+        "Deleting files from language_folder that don't exist in mod_folder")
 
     # If the file exists in language_folder and not in mod_folder, delete it from language_folder
     for file in language_files_list:
@@ -202,7 +198,7 @@ def run_program():
         if file not in mod_files_list:
             os.remove(full_path)
 
-    print("Copying files missing in language_folder from mod_folder")
+    logging.info("Copying files missing in language_folder from mod_folder")
 
     # If the file exists in mod_folder and not in language_folder, copy it from mod_folder to language_folder to avoid errors
     for file in mod_files_list:
@@ -210,10 +206,10 @@ def run_program():
         if file not in language_files_list:
             # New path for the file
             new_path = language_folder + file
-            print("Copying " + file + " to " + new_path)
+            logging.info("Copying " + file + " to " + new_path)
             shutil.copy(full_path, new_path)
 
-    print("Deleting files with wrong extension")
+    logging.info("Deleting files with wrong extension")
 
     language_files_list_updated = []
     for root, dirs, files in os.walk(language_folder):
@@ -264,26 +260,42 @@ def run_program():
         input_file_name = os.path.basename(input_file_path)
         if game == "Persona 5 Royal":
 
-            print(f"Decompiling BMD file: {input_file_name} with P5R library")
+            logging.info(
+                f"Decompiling BMD file: {input_file_name} with P5R library")
             subprocess.run([atlus_script_tools_path, input_file_path,
                             "-Decompiled", "-Library", "P5R", "-Encoding", "P5"])
-        else:
-            print(f"Decompiling BMD file: {input_file_name} with P5 library")
+        elif game == "Persona 5":
+            logging.info(
+                f"Decompiling BMD file: {input_file_name} with P5 library")
             subprocess.run([atlus_script_tools_path, input_file_path,
                             "-Decompiled", "-Library", "P5", "-Encoding", "P5"])
+        elif game == "Persona 4 Golden":
+            logging.info(
+                f"Decompiling BMD file: {input_file_name} with P4G library")
+            subprocess.run([atlus_script_tools_path, input_file_path,
+                            "-Decompiled", "-Library", "P4G", "-Encoding", "P5"])
 
     def ASCCompile(input_file_path):
         input_file_name = os.path.basename(input_file_path)
         if game == "Persona 5 Royal":
-            print(f"Compiling BMD file: {input_file_name} with P5R library")
+            logging.info(
+                f"Compiling BMD file: {input_file_name} with P5R library")
             output_file_path = os.path.splitext(input_file_path)[0] + '.bmd'
             subprocess.run([atlus_script_tools_path, input_file_path, "-Out",
                             output_file_path, "-Compile", "-OutFormat", "V1BE", "-Library", "P5R", "-Encoding", "P5"])
-        else:
-            print(f"Compiling BMD file: {input_file_name} with P5 library")
+        elif game == "Persona 5":
+            logging.info(
+                f"Compiling BMD file: {input_file_name} with P5 library")
             output_file_path = os.path.splitext(input_file_path)[0] + '.bmd'
             subprocess.run([atlus_script_tools_path, input_file_path, "-Out",
                             output_file_path, "-Compile", "-OutFormat", "V1BE", "-Library", "P5", "-Encoding", "P5"])
+        elif game == "Persona 4 Golden":
+            logging.info(
+                f"Compiling BMD file: {input_file_name} with P4G library")
+            output_file_path = os.path.splitext(input_file_path)[0] + '.bmd'
+            subprocess.run([atlus_script_tools_path, input_file_path, "-Out",
+                            output_file_path, "-Compile", "-OutFormat", "V1", "-Library", "P4G", "-Encoding", "P5"])
+
 
     # PersonaEditor functions
     def PEExport(input_file_path):
@@ -300,7 +312,7 @@ def run_program():
         PEExport(path_file)
         # the name_file is a path, so we need to get the name of the file
         name_file = os.path.basename(path_file)
-        print(f"Extracting all files from bf file: {path_file}")
+        logging.info(f"Extracting all files from bf file: {path_file}")
         # change the extension of the file to .bmd
         name_file_bmd = os.path.splitext(path_file)[0] + '.bmd'
         # the name of the file without the extension
@@ -309,7 +321,7 @@ def run_program():
         for root, dirs, files in os.walk(mod_folder):
             for file in files:
                 if file.lower() == name_file.lower() and file.lower().endswith('.bf'):
-                    print(
+                    logging.info(
                         f"Searching for the bf file: {name_file} in the mod folder")
                     name_file_bf_mod = os.path.join(root, file)
                     rel_path = os.path.relpath(name_file_bf_mod, mod_folder)
@@ -365,7 +377,7 @@ def run_program():
         # name_file_msg get the name_file_msg, and change the Mod folder for the Language folder
         name_file_msg_lang = os.path.join(
             name_file_msg_editlang)
-        print("the name of the file is: ", name_file_msg_lang)
+        logging.info(f"Processing {name_file_msg_lang}")
 
         # name_file_msg from the mod folder
         name_file_msg_mod = os.path.join(
@@ -395,7 +407,7 @@ def run_program():
                             # Save the key in the msg_names list
                             lang_msg_names.append(key)
                         else:
-                            print(
+                            logging.warning(
                                 f"Warning: Line '{line.strip()}' in {name_file_msg_lang} is not in the expected format.")
 
         # Read the lines of the mod .msg file and save the lines that start with '[msg'
@@ -411,7 +423,7 @@ def run_program():
                             # Save the line in the msg_names list
                             mod_msg_names.append(key)
                     else:
-                        print(
+                        logging.warning(
                             f"Warning: Line '{line.strip()}' in {name_file_msg_mod} is not in the expected format.")
 
         # Get the two lists and join them by index
@@ -582,7 +594,7 @@ def run_program():
         output_folder_msg_withoutroute = name_file_msg_mod_msg2.replace(
             file_name, '')
 
-        print(f"Coping {name_file_msg_mod} to {name_file_msg_mod_msg2}")
+        logging.info(f"Coping {name_file_msg_mod} to {name_file_msg_mod_msg2}")
         # Check if the output folder exists, otherwise create it
         if not os.path.exists(output_folder_msg_withoutroute):
             os.makedirs(output_folder_msg_withoutroute)
@@ -634,11 +646,12 @@ def run_program():
                 f.write(line)
 
         if num_lines_replaced == 0:
-            print(f"No lines replaced in {name_file_msg_mod_msg2}")
+            logging.info(f"No lines replaced in {name_file_msg_mod_msg2}")
         elif num_lines_replaced == 1:
-            print(f"1 line replaced in {name_file_msg_mod_msg2}")
+            logging.info(f"1 line replaced in {name_file_msg_mod_msg2}")
         else:
-            print(f"{num_lines_replaced} lines replaced in {name_file_msg_mod_msg2}")
+            logging.info(
+                f"{num_lines_replaced} lines replaced in {name_file_msg_mod_msg2}")
 
     # Delete all files that are not .bin, .bmd, .pak or .bf
     for folder in [mod_folder, language_folder]:
@@ -651,7 +664,7 @@ def run_program():
     for folder_name, subfolders, files in os.walk(mod_folder):
         # Read all files in the current folder
         for name_file in files:
-            print(f"Processing file: {name_file}")
+            logging.info(f"Processing file: {name_file}")
             file_extension = name_file.split('.')[-1]
             switcher = {
                 'bmd': des_case_bmd,
@@ -660,7 +673,7 @@ def run_program():
                 'BF': des_case_bf
             }
             if file_extension in switcher:
-                print(f"Processing switcher file: {name_file}")
+                logging.info(f"Processing switcher file: {name_file}")
                 switcher[file_extension](os.path.join(folder_name, name_file))
 
     # Check all types of files in the "Language" folder
@@ -668,7 +681,7 @@ def run_program():
     for folder_name, subfolders, files in os.walk(language_folder):
         # Read all files in the current folder
         for name_file in files:
-            print(f"Processing file: {name_file}")
+            logging.info(f"Processing file: {name_file}")
             file_extension = name_file.split('.')[-1]
             switcher = {
                 'bmd': des_case_bmd,
@@ -677,7 +690,7 @@ def run_program():
                 'BF': des_case_bf
             }
             if file_extension in switcher:
-                print(f"Processing switcher file: {name_file}")
+                logging.info(f"Processing switcher file: {name_file}")
                 switcher[file_extension](os.path.join(folder_name, name_file))
 
     # Proccess all .msg files in the "Mod" folder and make the changes in the "Output" folder
@@ -690,7 +703,7 @@ def run_program():
     for root, dirs, files in os.walk(output_folder):
         for msg_file in files:
             if msg_file.lower().endswith('.msg'):
-                print(f"Compiling {msg_file}")
+                logging.info(f"Compiling {msg_file}")
                 ASCCompile(os.path.join(root, msg_file))
 
     # Change all the endwith .bmd.bmd to .bmd
@@ -699,11 +712,12 @@ def run_program():
             if name.lower().endswith('.bmd.bmd'):
                 old_path = os.path.join(root, name)
                 new_path = os.path.join(root, name[:-8] + ".bmd")
-                print(f"Renaming {old_path} to {new_path}")
+                logging.info(f"Renaming {old_path} to {new_path}")
                 try:
                     os.rename(old_path, new_path)
                 except FileExistsError:
-                    print(f"Skipping {old_path} as {new_path} already exists")
+                    logging.info(
+                        f"Skipping {old_path} as {new_path} already exists")
                     continue
 
     # Import all .bf files in the "Output" folder with PEImport
@@ -711,7 +725,7 @@ def run_program():
         for mod_file in files:
             if mod_file.lower().endswith('.bf'):
                 mod_file_path = os.path.join(root, mod_file)
-                print(f"Importing {mod_file} in {root}")
+                logging.info(f"Importing {mod_file} in {root}")
                 PEImport(mod_file_path)
             mod_file_name_new = mod_file.split('.')[0]
 
@@ -738,10 +752,10 @@ def run_program():
         # Delete the files that are left in the keep_files list
         for file in Del_files:
             try:
-                print(f"Deleting {file}")
+                logging.info(f"Deleting {file}")
                 os.remove(file)
             except FileNotFoundError:
-                print(f"Skipping {file} as it doesn't exist")
+                logging.info(f"Skipping {file} as it doesn't exist")
                 continue
 
     delete_files_not_in_list(output_folder, mod_files_list)
@@ -762,7 +776,7 @@ def run_program():
     delete_empty_folders(mod_folder)
     delete_empty_folders(language_folder)
 
-    print("Done!")
+    logging.info("Done!")
     enable_button()
     tk.messagebox.showinfo("Finished", "Replaced all the names in the mod!")
 
