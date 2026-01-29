@@ -3,7 +3,7 @@
 Python script for **swapping** text in Persona 5 (Royal) .msg files across different languages, without modifying parameters commonly edited by mods.<br><br>
 **Supported File Types:** .bmd, .bf<br><br>
 
-![show](https://github.com/Artur1621/Persona5RTextSwapper/blob/main/img/app.png?raw=true "App")<br><br>
+![show](https://github.com/Artur1621/Persona5TextSwapper/blob/main/img/app.png?raw=true "App")<br><br>
 Usage
 --------
 1.-Select the game you want to swap from the dropdown menu.<br>
